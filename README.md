@@ -15,30 +15,6 @@ Go implementation of Yahoo Finance API client, inspired by Python's [yfinance](h
 go get github.com/wnjoon/go-yfinance
 ```
 
-## Implementation Status
-
-- [x] **Phase 0: Foundation**
-  - [x] CycleTLS-based HTTP client with Chrome TLS fingerprint
-  - [x] Cookie/Crumb authentication system
-  - [x] CSRF consent flow fallback (for EU users)
-  - [x] Comprehensive error handling
-  - [x] Configuration management
-- [x] **Phase 1: Core Data**
-  - [x] Ticker interface with symbol management
-  - [x] Quote: real-time quote data
-  - [x] History: OHLCV with period/interval support
-  - [x] Info: company profile and financial data
-  - [x] FastInfo: quick access to common fields
-  - [x] Actions: dividends and splits history
-- [ ] **Phase 2: Options**
-- [ ] **Phase 3: Financials**
-- [ ] **Phase 4: Analysis**
-- [ ] **Phase 5: Holdings & Actions**
-- [ ] **Phase 6: Search & Screener**
-- [ ] **Phase 7: Multi-ticker & Batch**
-- [ ] **Phase 8: Real-time WebSocket**
-- [ ] **Phase 9: Advanced Features**
-
 ## Quick Start
 
 ```go
@@ -138,7 +114,8 @@ go-yfinance/
 
 ## Documentation
 
-See [DESIGN.md](./DESIGN.md) for detailed architecture and implementation roadmap.
+- [DESIGN.md](./DESIGN.md) - Architecture and implementation roadmap
+- [STATUS.md](./STATUS.md) - Current implementation progress and status
 
 ## License
 
