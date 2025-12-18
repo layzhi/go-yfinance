@@ -12,15 +12,19 @@ import (
 
 // Client is the HTTP client for Yahoo Finance API with TLS fingerprint spoofing.
 type Client struct {
-	cycleTLS cycletls.CycleTLS
-	initOnce sync.Once
-	mu       sync.RWMutex
-	closed   bool
+	cycleTLS    cycletls.CycleTLS
+	initOnce    sync.Once
+	mu          sync.RWMutex
+	closed      bool
+	initialized bool
 
 	// Configuration
 	timeout   int
 	ja3       string
 	userAgent string
+
+	// Cookie storage for authentication
+	cookie string
 }
 
 // Chrome JA3 fingerprint for TLS spoofing
@@ -70,6 +74,7 @@ func New(opts ...ClientOption) (*Client, error) {
 func (c *Client) init() {
 	c.initOnce.Do(func() {
 		c.cycleTLS = cycletls.Init()
+		c.initialized = true
 	})
 }
 
@@ -91,15 +96,22 @@ func (c *Client) Get(rawURL string, params url.Values) (*Response, error) {
 		rawURL = fmt.Sprintf("%s?%s", rawURL, params.Encode())
 	}
 
+	headers := map[string]string{
+		"Accept":          "application/json,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+		"Accept-Language": "en-US,en;q=0.5",
+		"Connection":      "keep-alive",
+	}
+
+	// Add cookie if available
+	if c.cookie != "" {
+		headers["Cookie"] = c.cookie
+	}
+
 	resp, err := c.cycleTLS.Do(rawURL, cycletls.Options{
 		Timeout:   c.timeout,
 		Ja3:       c.ja3,
 		UserAgent: c.userAgent,
-		Headers: map[string]string{
-			"Accept":          "application/json,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-			"Accept-Language": "en-US,en;q=0.5",
-			"Connection":      "keep-alive",
-		},
+		Headers:   headers,
 	}, "GET")
 	if err != nil {
 		return nil, fmt.Errorf("GET request failed: %w", err)
@@ -110,6 +122,20 @@ func (c *Client) Get(rawURL string, params url.Values) (*Response, error) {
 		Body:       resp.Body,
 		Headers:    resp.Headers,
 	}, nil
+}
+
+// SetCookie sets the cookie for subsequent requests.
+func (c *Client) SetCookie(cookie string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.cookie = cookie
+}
+
+// GetCookie returns the current cookie.
+func (c *Client) GetCookie() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.cookie
 }
 
 // GetJSON performs an HTTP GET request and unmarshals the JSON response.
@@ -169,7 +195,14 @@ func (c *Client) Close() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if !c.closed {
+	// Only close if initialized and not already closed
+	if c.initialized && !c.closed {
+		// Recover from panic in case CycleTLS has internal nil channel issue
+		defer func() {
+			if r := recover(); r != nil {
+				// Silently ignore panic from CycleTLS close
+			}
+		}()
 		c.cycleTLS.Close()
 		c.closed = true
 	}

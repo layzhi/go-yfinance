@@ -183,8 +183,13 @@ func (a *AuthManager) fetchCSRF() error {
 func (a *AuthManager) extractCookies(headers map[string]string) {
 	for key, value := range headers {
 		if strings.ToLower(key) == "set-cookie" {
-			// Store the raw cookie for later use
-			a.cookie = value
+			// Extract just the cookie name=value part (before any attributes like Expires, Path, etc.)
+			parts := strings.Split(value, ";")
+			if len(parts) > 0 {
+				a.cookie = strings.TrimSpace(parts[0])
+				// Set cookie on the client for subsequent requests
+				a.client.SetCookie(a.cookie)
+			}
 			break
 		}
 	}
