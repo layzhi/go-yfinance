@@ -13,7 +13,7 @@ const ja3 = "771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-
 const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
 func main() {
-	fmt.Println("=== Debug: Authentication Flow ===\n")
+	fmt.Println("=== Debug: Authentication Flow ===")
 
 	client := cycletls.Init()
 	defer client.Close()
