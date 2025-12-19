@@ -129,6 +129,27 @@ func TestFrequencyValues(t *testing.T) {
 	}
 }
 
+func TestNormalizeFrequency(t *testing.T) {
+	// Test normalizeFrequency for Python yfinance compatibility
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"yearly", "annual"},
+		{"annual", "annual"},
+		{"quarterly", "quarterly"},
+		{"trailing", "trailing"},
+		{"", "annual"},
+	}
+
+	for _, tc := range tests {
+		result := normalizeFrequency(tc.input)
+		if result != tc.expected {
+			t.Errorf("normalizeFrequency(%q) = %q, expected %q", tc.input, result, tc.expected)
+		}
+	}
+}
+
 // Integration test - commented out for CI, run manually
 // func TestFinancialsLive(t *testing.T) {
 // 	tkr, err := New("AAPL")
