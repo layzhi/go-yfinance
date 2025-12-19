@@ -12,7 +12,7 @@ For architecture and design details, see [DESIGN.md](./DESIGN.md).
 | 1 | Core Data | ✅ Complete | 100% |
 | 2 | Options | ✅ Complete | 100% |
 | 3 | Financials | ✅ Complete | 100% |
-| 4 | Analysis | ⬜ Not Started | 0% |
+| 4 | Analysis | ✅ Complete | 100% |
 | 5 | Holdings & Actions | ⬜ Not Started | 0% |
 | 6 | Search & Screener | ⬜ Not Started | 0% |
 | 7 | Multi-ticker & Batch | ⬜ Not Started | 0% |
@@ -160,18 +160,40 @@ For architecture and design details, see [DESIGN.md](./DESIGN.md).
 
 ---
 
-## Phase 4: Analysis ⬜
+## Phase 4: Analysis ✅
 
-**Status**: Not Started
+**Status**: Complete
+**Branch**: `phase4/analysis` (merged to main)
 
-### Planned Items
+### Completed Items
 
-- [ ] Analyst Recommendations
-- [ ] Price Targets
-- [ ] Earnings Estimates
-- [ ] Revenue Estimates
-- [ ] EPS Trend/Revisions
-- [ ] Growth Estimates
+- [x] **Analysis Models** (`pkg/models/analysis.go`)
+  - `RecommendationTrend`: Analyst recommendations with Total() helper
+  - `PriceTarget`: Target prices and recommendation summary
+  - `EarningsEstimate`: Earnings estimates with analyst counts
+  - `RevenueEstimate`: Revenue estimates with growth rates
+  - `EPSTrend`: EPS trends over 7/30/60/90 days
+  - `EPSRevision`: Revision counts (up/down)
+  - `EarningsHistory`: Historical EPS actual vs estimate
+  - `GrowthEstimate`: Stock/industry/sector/index growth comparisons
+
+- [x] **Analysis Methods** (`pkg/ticker/analysis.go`)
+  - `Recommendations()`: Analyst recommendation trends (StrongBuy/Buy/Hold/Sell)
+  - `PriceTarget()`: Target prices from financialData module
+  - `EarningsEstimates()`: Earnings estimates from earningsTrend
+  - `RevenueEstimates()`: Revenue estimates from earningsTrend
+  - `EPSTrend()`: EPS trends over time
+  - `EPSRevisions()`: EPS revision counts
+  - `EarningsHistory()`: Historical earnings with surprise %
+  - `GrowthEstimates()`: Growth comparisons across sources
+
+### API Modules Used
+
+- `recommendationTrend`: Analyst recommendations
+- `financialData`: Price targets and current price
+- `earningsTrend`: Earnings/revenue estimates, EPS trends
+- `earningsHistory`: Historical EPS data
+- `industryTrend`, `sectorTrend`, `indexTrend`: Growth comparisons
 
 ---
 
@@ -264,7 +286,10 @@ main
 ├── phase3/financials (merged)
 │   ├── phase3/financial-models
 │   └── phase3/financial-methods
-├── phase4/analysis (future)
+├── phase4/analysis (merged)
+│   ├── phase4/analysis-models
+│   └── phase4/analysis-methods
+├── phase5/holdings (future)
 └── ...
 ```
 
