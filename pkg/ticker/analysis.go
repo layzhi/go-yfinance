@@ -46,8 +46,9 @@ func (t *Ticker) Recommendations() (*models.RecommendationTrend, error) {
 	return result, nil
 }
 
-// PriceTarget returns analyst price targets.
-func (t *Ticker) PriceTarget() (*models.PriceTarget, error) {
+// AnalystPriceTargets returns analyst price targets.
+// This method name matches Python yfinance's ticker.analyst_price_targets property.
+func (t *Ticker) AnalystPriceTargets() (*models.PriceTarget, error) {
 	if t.analysisCache != nil && t.analysisCache.priceTarget != nil {
 		return t.analysisCache.priceTarget, nil
 	}
@@ -67,8 +68,15 @@ func (t *Ticker) PriceTarget() (*models.PriceTarget, error) {
 	return result, nil
 }
 
-// EarningsEstimates returns earnings estimates for upcoming periods.
-func (t *Ticker) EarningsEstimates() ([]models.EarningsEstimate, error) {
+// PriceTarget is a deprecated alias for AnalystPriceTargets.
+// Deprecated: Use AnalystPriceTargets() instead for Python yfinance compatibility.
+func (t *Ticker) PriceTarget() (*models.PriceTarget, error) {
+	return t.AnalystPriceTargets()
+}
+
+// EarningsEstimate returns earnings estimates for upcoming periods.
+// This method name matches Python yfinance's ticker.earnings_estimate property.
+func (t *Ticker) EarningsEstimate() ([]models.EarningsEstimate, error) {
 	if t.analysisCache != nil && t.analysisCache.earningsEstimates != nil {
 		return t.analysisCache.earningsEstimates, nil
 	}
@@ -84,8 +92,15 @@ func (t *Ticker) EarningsEstimates() ([]models.EarningsEstimate, error) {
 	return result, nil
 }
 
-// RevenueEstimates returns revenue estimates for upcoming periods.
-func (t *Ticker) RevenueEstimates() ([]models.RevenueEstimate, error) {
+// EarningsEstimates is a deprecated alias for EarningsEstimate.
+// Deprecated: Use EarningsEstimate() instead for Python yfinance compatibility.
+func (t *Ticker) EarningsEstimates() ([]models.EarningsEstimate, error) {
+	return t.EarningsEstimate()
+}
+
+// RevenueEstimate returns revenue estimates for upcoming periods.
+// This method name matches Python yfinance's ticker.revenue_estimate property.
+func (t *Ticker) RevenueEstimate() ([]models.RevenueEstimate, error) {
 	if t.analysisCache != nil && t.analysisCache.revenueEstimates != nil {
 		return t.analysisCache.revenueEstimates, nil
 	}
@@ -99,6 +114,12 @@ func (t *Ticker) RevenueEstimates() ([]models.RevenueEstimate, error) {
 	t.initAnalysisCache()
 	t.analysisCache.revenueEstimates = result
 	return result, nil
+}
+
+// RevenueEstimates is a deprecated alias for RevenueEstimate.
+// Deprecated: Use RevenueEstimate() instead for Python yfinance compatibility.
+func (t *Ticker) RevenueEstimates() ([]models.RevenueEstimate, error) {
+	return t.RevenueEstimate()
 }
 
 // EPSTrend returns EPS trend data.

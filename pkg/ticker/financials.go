@@ -23,11 +23,10 @@ type financialsCache struct {
 }
 
 // IncomeStatement returns the income statement.
-// freq should be "annual" or "quarterly" (default: "annual").
+// freq should be "annual", "yearly", or "quarterly" (default: "annual").
+// Note: "yearly" is accepted as an alias for "annual" for Python yfinance compatibility.
 func (t *Ticker) IncomeStatement(freq string) (*models.FinancialStatement, error) {
-	if freq == "" {
-		freq = "annual"
-	}
+	freq = normalizeFrequency(freq)
 
 	// Check cache
 	if t.financialsCache != nil {
@@ -56,11 +55,10 @@ func (t *Ticker) IncomeStatement(freq string) (*models.FinancialStatement, error
 }
 
 // BalanceSheet returns the balance sheet.
-// freq should be "annual" or "quarterly" (default: "annual").
+// freq should be "annual", "yearly", or "quarterly" (default: "annual").
+// Note: "yearly" is accepted as an alias for "annual" for Python yfinance compatibility.
 func (t *Ticker) BalanceSheet(freq string) (*models.FinancialStatement, error) {
-	if freq == "" {
-		freq = "annual"
-	}
+	freq = normalizeFrequency(freq)
 
 	// Check cache
 	if t.financialsCache != nil {
@@ -89,11 +87,10 @@ func (t *Ticker) BalanceSheet(freq string) (*models.FinancialStatement, error) {
 }
 
 // CashFlow returns the cash flow statement.
-// freq should be "annual" or "quarterly" (default: "annual").
+// freq should be "annual", "yearly", or "quarterly" (default: "annual").
+// Note: "yearly" is accepted as an alias for "annual" for Python yfinance compatibility.
 func (t *Ticker) CashFlow(freq string) (*models.FinancialStatement, error) {
-	if freq == "" {
-		freq = "annual"
-	}
+	freq = normalizeFrequency(freq)
 
 	// Check cache
 	if t.financialsCache != nil {
@@ -125,6 +122,19 @@ func (t *Ticker) CashFlow(freq string) (*models.FinancialStatement, error) {
 func (t *Ticker) initFinancialsCache() {
 	if t.financialsCache == nil {
 		t.financialsCache = &financialsCache{}
+	}
+}
+
+// normalizeFrequency normalizes frequency parameter to match API expectations.
+// Accepts "yearly" as alias for "annual" for Python yfinance compatibility.
+func normalizeFrequency(freq string) string {
+	switch freq {
+	case "yearly":
+		return "annual"
+	case "":
+		return "annual"
+	default:
+		return freq
 	}
 }
 
