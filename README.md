@@ -76,6 +76,10 @@ func main() {
 }
 ```
 
+## Rate Limiting
+
+> ⚠️ **Note**: This library does not enforce rate limiting internally. Yahoo Finance may block IP addresses with excessive request volume. To avoid `429 Too Many Requests` errors, manage concurrency on the client side using worker pools, semaphores, or request throttling.
+
 ## Configuration
 
 ```go
