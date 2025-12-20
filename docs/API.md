@@ -890,6 +890,8 @@ Package models provides data structures for Yahoo Finance API responses.
 
 Package models provides data structures for Yahoo Finance API responses.
 
+Package models provides data structures for Yahoo Finance API responses.
+
 ### Overview
 
 The models package defines all the data types used throughout go\-yfinance. These types represent the structured data returned by Yahoo Finance APIs.
@@ -930,6 +932,19 @@ Analysis:
 - [EarningsHistory](<#EarningsHistory>): Historical earnings vs estimates
 - [GrowthEstimate](<#GrowthEstimate>): Growth estimates from various sources
 
+Holders:
+
+- [MajorHolders](<#MajorHolders>): Major shareholders breakdown \(insiders, institutions\)
+- [Holder](<#Holder>): Institutional or mutual fund holder information
+- [InsiderTransaction](<#InsiderTransaction>): Insider purchase/sale transaction
+- [InsiderHolder](<#InsiderHolder>): Company insider with holdings
+- [InsiderPurchases](<#InsiderPurchases>): Net share purchase activity summary
+- [HoldersData](<#HoldersData>): Aggregate holder data container
+
+Calendar:
+
+- [Calendar](<#Calendar>): Upcoming events including earnings and dividend dates
+
 ### History Parameters
 
 The [HistoryParams](<#HistoryParams>) type controls historical data fetching:
@@ -950,6 +965,8 @@ Package models provides data structures for Yahoo Finance API responses.
 
 Package models provides data structures for Yahoo Finance API responses.
 
+Package models provides data structures for Yahoo Finance API responses.
+
 ## Index
 
 - [func IsValidInterval\(interval string\) bool](<#IsValidInterval>)
@@ -959,6 +976,10 @@ Package models provides data structures for Yahoo Finance API responses.
 - [type Actions](<#Actions>)
 - [type AnalysisData](<#AnalysisData>)
 - [type Bar](<#Bar>)
+- [type Calendar](<#Calendar>)
+  - [func \(c \*Calendar\) HasDividend\(\) bool](<#Calendar.HasDividend>)
+  - [func \(c \*Calendar\) HasEarnings\(\) bool](<#Calendar.HasEarnings>)
+  - [func \(c \*Calendar\) NextEarningsDate\(\) \*time.Time](<#Calendar.NextEarningsDate>)
 - [type CapitalGainEvent](<#CapitalGainEvent>)
 - [type ChartAdjClose](<#ChartAdjClose>)
 - [type ChartError](<#ChartError>)
@@ -988,7 +1009,14 @@ Package models provides data structures for Yahoo Finance API responses.
 - [type History](<#History>)
 - [type HistoryParams](<#HistoryParams>)
   - [func DefaultHistoryParams\(\) HistoryParams](<#DefaultHistoryParams>)
+- [type Holder](<#Holder>)
+- [type HoldersData](<#HoldersData>)
 - [type Info](<#Info>)
+- [type InsiderHolder](<#InsiderHolder>)
+  - [func \(h \*InsiderHolder\) TotalShares\(\) int64](<#InsiderHolder.TotalShares>)
+- [type InsiderPurchases](<#InsiderPurchases>)
+- [type InsiderTransaction](<#InsiderTransaction>)
+- [type MajorHolders](<#MajorHolders>)
 - [type Officer](<#Officer>)
 - [type Option](<#Option>)
   - [func \(o \*Option\) ExpirationDatetime\(\) time.Time](<#Option.ExpirationDatetime>)
@@ -1014,6 +1042,7 @@ Package models provides data structures for Yahoo Finance API responses.
 - [type TimeseriesDataPoint](<#TimeseriesDataPoint>)
 - [type TimeseriesResponse](<#TimeseriesResponse>)
 - [type TimeseriesResult](<#TimeseriesResult>)
+- [type TransactionStats](<#TransactionStats>)
 
 
 <a name="IsValidInterval"></a>
@@ -1100,6 +1129,87 @@ type Bar struct {
     Splits    float64   `json:"splits,omitempty"`
 }
 ```
+
+<a name="Calendar"></a>
+## type Calendar
+
+Calendar represents upcoming calendar events for a ticker.
+
+This includes dividend dates, earnings dates, and earnings estimates.
+
+Example:
+
+```
+calendar, err := ticker.Calendar()
+if err != nil {
+    log.Fatal(err)
+}
+if calendar.ExDividendDate != nil {
+    fmt.Printf("Ex-Dividend: %s\n", calendar.ExDividendDate.Format("2006-01-02"))
+}
+for _, date := range calendar.EarningsDate {
+    fmt.Printf("Earnings: %s\n", date.Format("2006-01-02"))
+}
+```
+
+```go
+type Calendar struct {
+    // DividendDate is the next dividend payment date.
+    DividendDate *time.Time `json:"dividendDate,omitempty"`
+
+    // ExDividendDate is the ex-dividend date (must own before this date).
+    ExDividendDate *time.Time `json:"exDividendDate,omitempty"`
+
+    // EarningsDate contains the expected earnings announcement date(s).
+    // Often contains a range (start and end date).
+    EarningsDate []time.Time `json:"earningsDate,omitempty"`
+
+    // EarningsHigh is the highest earnings estimate.
+    EarningsHigh *float64 `json:"earningsHigh,omitempty"`
+
+    // EarningsLow is the lowest earnings estimate.
+    EarningsLow *float64 `json:"earningsLow,omitempty"`
+
+    // EarningsAverage is the average earnings estimate.
+    EarningsAverage *float64 `json:"earningsAverage,omitempty"`
+
+    // RevenueHigh is the highest revenue estimate.
+    RevenueHigh *float64 `json:"revenueHigh,omitempty"`
+
+    // RevenueLow is the lowest revenue estimate.
+    RevenueLow *float64 `json:"revenueLow,omitempty"`
+
+    // RevenueAverage is the average revenue estimate.
+    RevenueAverage *float64 `json:"revenueAverage,omitempty"`
+}
+```
+
+<a name="Calendar.HasDividend"></a>
+### func \(\*Calendar\) HasDividend
+
+```go
+func (c *Calendar) HasDividend() bool
+```
+
+HasDividend returns true if dividend data is available.
+
+<a name="Calendar.HasEarnings"></a>
+### func \(\*Calendar\) HasEarnings
+
+```go
+func (c *Calendar) HasEarnings() bool
+```
+
+HasEarnings returns true if earnings data is available.
+
+<a name="Calendar.NextEarningsDate"></a>
+### func \(\*Calendar\) NextEarningsDate
+
+```go
+func (c *Calendar) NextEarningsDate() *time.Time
+```
+
+NextEarningsDate returns the earliest earnings date, or nil if none.
 
 <a name="CapitalGainEvent"></a>
 ## type CapitalGainEvent
@@ -1544,6 +1654,62 @@ func DefaultHistoryParams() HistoryParams
 
 DefaultHistoryParams returns default history parameters.
 
+<a name="Holder"></a>
+## type Holder
+
+Holder represents an institutional or mutual fund holder.
+
+This structure is used for both institutional holders and mutual fund holders.
+
+```go
+type Holder struct {
+    // DateReported is when this holding was reported.
+    DateReported time.Time `json:"dateReported"`
+
+    // Holder is the name of the holding institution or fund.
+    Holder string `json:"holder"`
+
+    // Shares is the number of shares held.
+    Shares int64 `json:"shares"`
+
+    // Value is the total value of the holding.
+    Value float64 `json:"value"`
+
+    // PctHeld is the percentage of outstanding shares held (0.0-1.0).
+    PctHeld float64 `json:"pctHeld"`
+
+    // PctChange is the percentage change in position since last report (0.0-1.0).
+    PctChange float64 `json:"pctChange"`
+}
+```
+
+<a name="HoldersData"></a>
+## type HoldersData
+
+HoldersData contains all holder\-related data for a ticker.
+
+```go
+type HoldersData struct {
+    // Major contains the major holders breakdown.
+    Major *MajorHolders `json:"major,omitempty"`
+
+    // Institutional contains the list of institutional holders.
+    Institutional []Holder `json:"institutional,omitempty"`
+
+    // MutualFund contains the list of mutual fund holders.
+    MutualFund []Holder `json:"mutualFund,omitempty"`
+
+    // InsiderTransactions contains the list of insider transactions.
+    InsiderTransactions []InsiderTransaction `json:"insiderTransactions,omitempty"`
+
+    // InsiderRoster contains the list of insiders.
+    InsiderRoster []InsiderHolder `json:"insiderRoster,omitempty"`
+
+    // InsiderPurchases contains insider purchase activity summary.
+    InsiderPurchases *InsiderPurchases `json:"insiderPurchases,omitempty"`
+}
+```
+
 <a name="Info"></a>
 ## type Info
 
@@ -1694,6 +1860,157 @@ type Info struct {
 
     // Trailing PEG (from timeseries API)
     TrailingPegRatio float64 `json:"trailingPegRatio,omitempty"`
+}
+```
+
+<a name="InsiderHolder"></a>
+## type InsiderHolder
+
+InsiderHolder represents an insider on the company's roster.
+
+This provides information about company insiders and their holdings.
+
+```go
+type InsiderHolder struct {
+    // Name is the insider's name.
+    Name string `json:"name"`
+
+    // Position is the insider's position/title.
+    Position string `json:"position"`
+
+    // URL is a link to more information.
+    URL string `json:"url,omitempty"`
+
+    // MostRecentTransaction describes the most recent transaction.
+    MostRecentTransaction string `json:"mostRecentTransaction,omitempty"`
+
+    // LatestTransDate is the date of the most recent transaction.
+    LatestTransDate *time.Time `json:"latestTransDate,omitempty"`
+
+    // PositionDirectDate is when direct position was last reported.
+    PositionDirectDate *time.Time `json:"positionDirectDate,omitempty"`
+
+    // SharesOwnedDirectly is the number of shares owned directly.
+    SharesOwnedDirectly int64 `json:"sharesOwnedDirectly"`
+
+    // SharesOwnedIndirectly is the number of shares owned indirectly.
+    SharesOwnedIndirectly int64 `json:"sharesOwnedIndirectly"`
+}
+```
+
+<a name="InsiderHolder.TotalShares"></a>
+### func \(\*InsiderHolder\) TotalShares
+
+```go
+func (h *InsiderHolder) TotalShares() int64
+```
+
+TotalShares returns the total shares owned \(direct \+ indirect\).
+
+<a name="InsiderPurchases"></a>
+## type InsiderPurchases
+
+InsiderPurchases represents net share purchase activity by insiders.
+
+This summarizes insider buying and selling activity over a period.
+
+```go
+type InsiderPurchases struct {
+    // Period is the time period covered (e.g., "6m" for 6 months).
+    Period string `json:"period"`
+
+    // Purchases contains purchase statistics.
+    Purchases TransactionStats `json:"purchases"`
+
+    // Sales contains sale statistics.
+    Sales TransactionStats `json:"sales"`
+
+    // Net contains net purchase/sale statistics.
+    Net TransactionStats `json:"net"`
+
+    // TotalInsiderShares is total shares held by insiders.
+    TotalInsiderShares int64 `json:"totalInsiderShares"`
+
+    // NetPercentInsiderShares is net shares as percent of insider holdings.
+    NetPercentInsiderShares float64 `json:"netPercentInsiderShares"`
+
+    // BuyPercentInsiderShares is buy shares as percent of insider holdings.
+    BuyPercentInsiderShares float64 `json:"buyPercentInsiderShares"`
+
+    // SellPercentInsiderShares is sell shares as percent of insider holdings.
+    SellPercentInsiderShares float64 `json:"sellPercentInsiderShares"`
+}
+```
+
+<a name="InsiderTransaction"></a>
+## type InsiderTransaction
+
+InsiderTransaction represents a single insider transaction.
+
+This includes purchases, sales, and other transactions by company insiders.
+
+```go
+type InsiderTransaction struct {
+    // StartDate is the transaction date.
+    StartDate time.Time `json:"startDate"`
+
+    // Insider is the name of the insider.
+    Insider string `json:"insider"`
+
+    // Position is the insider's position/title in the company.
+    Position string `json:"position"`
+
+    // URL is a link to more information about the insider.
+    URL string `json:"url,omitempty"`
+
+    // Transaction is the type of transaction (e.g., "Sale", "Purchase").
+    Transaction string `json:"transaction"`
+
+    // Text is a description of the transaction.
+    Text string `json:"text,omitempty"`
+
+    // Shares is the number of shares involved.
+    Shares int64 `json:"shares"`
+
+    // Value is the total value of the transaction.
+    Value float64 `json:"value"`
+
+    // Ownership indicates ownership type (e.g., "D" for direct, "I" for indirect).
+    Ownership string `json:"ownership"`
+}
+```
+
+<a name="MajorHolders"></a>
+## type MajorHolders
+
+MajorHolders represents the breakdown of major shareholders.
+
+This includes percentages held by insiders, institutions, and the total count of institutional holders.
+
+Example:
+
+```
+holders, err := ticker.MajorHolders()
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("Insiders: %.2f%%\n", holders.InsidersPercentHeld*100)
+fmt.Printf("Institutions: %.2f%%\n", holders.InstitutionsPercentHeld*100)
+```
+
+```go
+type MajorHolders struct {
+    // InsidersPercentHeld is the percentage of shares held by insiders (0.0-1.0).
+    InsidersPercentHeld float64 `json:"insidersPercentHeld"`
+
+    // InstitutionsPercentHeld is the percentage of shares held by institutions (0.0-1.0).
+    InstitutionsPercentHeld float64 `json:"institutionsPercentHeld"`
+
+    // InstitutionsFloatPercentHeld is the percentage of float held by institutions (0.0-1.0).
+    InstitutionsFloatPercentHeld float64 `json:"institutionsFloatPercentHeld"`
+
+    // InstitutionsCount is the number of institutional holders.
+    InstitutionsCount int `json:"institutionsCount"`
 }
 ```
 
@@ -2253,6 +2570,21 @@ type TimeseriesResult struct {
 }
 ```
 
+<a name="TransactionStats"></a>
+## type TransactionStats
+
+TransactionStats represents statistics for a type of transaction.
+
+```go
+type TransactionStats struct {
+    // Shares is the number of shares involved.
+    Shares int64 `json:"shares"`
+
+    // Transactions is the number of transactions.
+    Transactions int `json:"transactions"`
+}
+```
+
 # ticker
 
 ```go
@@ -2311,6 +2643,13 @@ The Ticker type provides methods for:
 - [Ticker.EPSRevisions](<#Ticker.EPSRevisions>): EPS revision data
 - [Ticker.EarningsHistory](<#Ticker.EarningsHistory>): Historical earnings data
 - [Ticker.GrowthEstimates](<#Ticker.GrowthEstimates>): Growth estimates
+- [Ticker.MajorHolders](<#Ticker.MajorHolders>): Major shareholders breakdown
+- [Ticker.InstitutionalHolders](<#Ticker.InstitutionalHolders>): Institutional holder list
+- [Ticker.MutualFundHolders](<#Ticker.MutualFundHolders>): Mutual fund holder list
+- [Ticker.InsiderTransactions](<#Ticker.InsiderTransactions>): Insider transaction history
+- [Ticker.InsiderRosterHolders](<#Ticker.InsiderRosterHolders>): Company insiders list
+- [Ticker.InsiderPurchases](<#Ticker.InsiderPurchases>): Insider purchase activity summary
+- [Ticker.Calendar](<#Ticker.Calendar>): Upcoming events \(earnings, dividends\)
 
 ### Caching
 
@@ -2331,6 +2670,7 @@ Package ticker provides the main Ticker interface for accessing Yahoo Finance da
   - [func \(t \*Ticker\) Actions\(\) \(\*models.Actions, error\)](<#Ticker.Actions>)
   - [func \(t \*Ticker\) AnalystPriceTargets\(\) \(\*models.PriceTarget, error\)](<#Ticker.AnalystPriceTargets>)
   - [func \(t \*Ticker\) BalanceSheet\(freq string\) \(\*models.FinancialStatement, error\)](<#Ticker.BalanceSheet>)
+  - [func \(t \*Ticker\) Calendar\(\) \(\*models.Calendar, error\)](<#Ticker.Calendar>)
   - [func \(t \*Ticker\) CashFlow\(freq string\) \(\*models.FinancialStatement, error\)](<#Ticker.CashFlow>)
   - [func \(t \*Ticker\) ClearCache\(\)](<#Ticker.ClearCache>)
   - [func \(t \*Ticker\) Close\(\)](<#Ticker.Close>)
@@ -2349,6 +2689,13 @@ Package ticker provides the main Ticker interface for accessing Yahoo Finance da
   - [func \(t \*Ticker\) HistoryRange\(start, end time.Time, interval string\) \(\[\]models.Bar, error\)](<#Ticker.HistoryRange>)
   - [func \(t \*Ticker\) IncomeStatement\(freq string\) \(\*models.FinancialStatement, error\)](<#Ticker.IncomeStatement>)
   - [func \(t \*Ticker\) Info\(\) \(\*models.Info, error\)](<#Ticker.Info>)
+  - [func \(t \*Ticker\) InsiderPurchases\(\) \(\*models.InsiderPurchases, error\)](<#Ticker.InsiderPurchases>)
+  - [func \(t \*Ticker\) InsiderRoster\(\) \(\[\]models.InsiderHolder, error\)](<#Ticker.InsiderRoster>)
+  - [func \(t \*Ticker\) InsiderRosterHolders\(\) \(\[\]models.InsiderHolder, error\)](<#Ticker.InsiderRosterHolders>)
+  - [func \(t \*Ticker\) InsiderTransactions\(\) \(\[\]models.InsiderTransaction, error\)](<#Ticker.InsiderTransactions>)
+  - [func \(t \*Ticker\) InstitutionalHolders\(\) \(\[\]models.Holder, error\)](<#Ticker.InstitutionalHolders>)
+  - [func \(t \*Ticker\) MajorHolders\(\) \(\*models.MajorHolders, error\)](<#Ticker.MajorHolders>)
+  - [func \(t \*Ticker\) MutualFundHolders\(\) \(\[\]models.Holder, error\)](<#Ticker.MutualFundHolders>)
   - [func \(t \*Ticker\) OptionChain\(date string\) \(\*models.OptionChain, error\)](<#Ticker.OptionChain>)
   - [func \(t \*Ticker\) OptionChainAtExpiry\(date time.Time\) \(\*models.OptionChain, error\)](<#Ticker.OptionChainAtExpiry>)
   - [func \(t \*Ticker\) Options\(\) \(\[\]time.Time, error\)](<#Ticker.Options>)
@@ -2444,6 +2791,32 @@ Example:
 balance, err := ticker.BalanceSheet("quarterly")
 if assets, ok := balance.GetLatest("TotalAssets"); ok {
     fmt.Printf("Total Assets: %.2f\n", assets)
+}
+```
+
+<a name="Ticker.Calendar"></a>
+### func \(\*Ticker\) Calendar
+
+```go
+func (t *Ticker) Calendar() (*models.Calendar, error)
+```
+
+Calendar returns upcoming calendar events for the ticker.
+
+This includes dividend dates, earnings dates, and earnings estimates.
+
+Example:
+
+```
+calendar, err := ticker.Calendar()
+if err != nil {
+    log.Fatal(err)
+}
+if calendar.ExDividendDate != nil {
+    fmt.Printf("Ex-Dividend: %s\n", calendar.ExDividendDate.Format("2006-01-02"))
+}
+for _, date := range calendar.EarningsDate {
+    fmt.Printf("Earnings: %s\n", date.Format("2006-01-02"))
 }
 ```
 
@@ -2676,6 +3049,154 @@ func (t *Ticker) Info() (*models.Info, error)
 ```
 
 Info fetches comprehensive company information for the ticker.
+
+<a name="Ticker.InsiderPurchases"></a>
+### func \(\*Ticker\) InsiderPurchases
+
+```go
+func (t *Ticker) InsiderPurchases() (*models.InsiderPurchases, error)
+```
+
+InsiderPurchases returns insider purchase activity summary.
+
+This summarizes net share purchases/sales by insiders over a period.
+
+Example:
+
+```
+purchases, err := ticker.InsiderPurchases()
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("Net shares: %d (%s)\n", purchases.Net.Shares, purchases.Period)
+```
+
+<a name="Ticker.InsiderRoster"></a>
+### func \(\*Ticker\) InsiderRoster
+
+```go
+func (t *Ticker) InsiderRoster() ([]models.InsiderHolder, error)
+```
+
+InsiderRoster returns the list of company insiders.
+
+Deprecated: Use InsiderRosterHolders instead.
+
+<a name="Ticker.InsiderRosterHolders"></a>
+### func \(\*Ticker\) InsiderRosterHolders
+
+```go
+func (t *Ticker) InsiderRosterHolders() ([]models.InsiderHolder, error)
+```
+
+InsiderRosterHolders returns the list of company insiders.
+
+This includes insider names, positions, and their holdings.
+
+Example:
+
+```
+roster, err := ticker.InsiderRosterHolders()
+if err != nil {
+    log.Fatal(err)
+}
+for _, insider := range roster {
+    fmt.Printf("%s (%s): %d shares\n",
+        insider.Name, insider.Position, insider.TotalShares())
+}
+```
+
+<a name="Ticker.InsiderTransactions"></a>
+### func \(\*Ticker\) InsiderTransactions
+
+```go
+func (t *Ticker) InsiderTransactions() ([]models.InsiderTransaction, error)
+```
+
+InsiderTransactions returns the list of insider transactions.
+
+This includes purchases, sales, and other transactions by company insiders.
+
+Example:
+
+```
+transactions, err := ticker.InsiderTransactions()
+if err != nil {
+    log.Fatal(err)
+}
+for _, tx := range transactions {
+    fmt.Printf("%s: %s %d shares on %s\n",
+        tx.Insider, tx.Transaction, tx.Shares, tx.StartDate.Format("2006-01-02"))
+}
+```
+
+<a name="Ticker.InstitutionalHolders"></a>
+### func \(\*Ticker\) InstitutionalHolders
+
+```go
+func (t *Ticker) InstitutionalHolders() ([]models.Holder, error)
+```
+
+InstitutionalHolders returns the list of institutional holders.
+
+Each holder includes the institution name, shares held, value, and percentage.
+
+Example:
+
+```
+holders, err := ticker.InstitutionalHolders()
+if err != nil {
+    log.Fatal(err)
+}
+for _, h := range holders {
+    fmt.Printf("%s: %d shares (%.2f%%)\n", h.Holder, h.Shares, h.PctHeld*100)
+}
+```
+
+<a name="Ticker.MajorHolders"></a>
+### func \(\*Ticker\) MajorHolders
+
+```go
+func (t *Ticker) MajorHolders() (*models.MajorHolders, error)
+```
+
+MajorHolders returns the major holders breakdown.
+
+This includes percentages held by insiders, institutions, and institutional count.
+
+Example:
+
+```
+holders, err := ticker.MajorHolders()
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("Insiders: %.2f%%\n", holders.InsidersPercentHeld*100)
+fmt.Printf("Institutions: %.2f%%\n", holders.InstitutionsPercentHeld*100)
+```
+
+<a name="Ticker.MutualFundHolders"></a>
+### func \(\*Ticker\) MutualFundHolders
+
+```go
+func (t *Ticker) MutualFundHolders() ([]models.Holder, error)
+```
+
+MutualFundHolders returns the list of mutual fund holders.
+
+Each holder includes the fund name, shares held, value, and percentage.
+
+Example:
+
+```
+holders, err := ticker.MutualFundHolders()
+if err != nil {
+    log.Fatal(err)
+}
+for _, h := range holders {
+    fmt.Printf("%s: %d shares\n", h.Holder, h.Shares)
+}
+```
 
 <a name="Ticker.OptionChain"></a>
 ### func \(\*Ticker\) OptionChain
