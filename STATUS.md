@@ -221,7 +221,7 @@ For architecture and design details, see [DESIGN.md](./DESIGN.md).
   - `InstitutionalHolders()`: Institutional holder list
   - `MutualFundHolders()`: Mutual fund holder list
   - `InsiderTransactions()`: Insider transaction history
-  - `InsiderRoster()`: Company insiders list
+  - `InsiderRosterHolders()`: Company insiders list
   - `InsiderPurchases()`: Insider purchase activity summary
   - Caching for all holders data
 
@@ -235,7 +235,7 @@ For architecture and design details, see [DESIGN.md](./DESIGN.md).
 - `institutionOwnership`: Institutional holder list
 - `fundOwnership`: Mutual fund holder list
 - `insiderTransactions`: Insider transaction history
-- `insiderHolders`: Insider roster
+- `insiderHolders`: Insider roster holders
 - `netSharePurchaseActivity`: Net purchase summary
 - `calendarEvents`: Upcoming earnings/dividend dates
 

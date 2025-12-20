@@ -264,7 +264,7 @@ func TestClearCacheIncludesHolders(t *testing.T) {
 // 	}
 //
 // 	// Test Insider Roster
-// 	roster, err := tkr.InsiderRoster()
+// 	roster, err := tkr.InsiderRosterHolders()
 // 	if err != nil {
 // 		t.Fatalf("Failed to get insider roster: %v", err)
 // 	}

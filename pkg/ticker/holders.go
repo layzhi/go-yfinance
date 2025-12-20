@@ -140,13 +140,13 @@ func (t *Ticker) InsiderTransactions() ([]models.InsiderTransaction, error) {
 	return t.holdersCache.insiderTransactions, nil
 }
 
-// InsiderRoster returns the list of company insiders.
+// InsiderRosterHolders returns the list of company insiders.
 //
 // This includes insider names, positions, and their holdings.
 //
 // Example:
 //
-//	roster, err := ticker.InsiderRoster()
+//	roster, err := ticker.InsiderRosterHolders()
 //	if err != nil {
 //	    log.Fatal(err)
 //	}
@@ -154,7 +154,7 @@ func (t *Ticker) InsiderTransactions() ([]models.InsiderTransaction, error) {
 //	    fmt.Printf("%s (%s): %d shares\n",
 //	        insider.Name, insider.Position, insider.TotalShares())
 //	}
-func (t *Ticker) InsiderRoster() ([]models.InsiderHolder, error) {
+func (t *Ticker) InsiderRosterHolders() ([]models.InsiderHolder, error) {
 	if err := t.ensureHoldersCache(); err != nil {
 		return nil, err
 	}
@@ -167,6 +167,13 @@ func (t *Ticker) InsiderRoster() ([]models.InsiderHolder, error) {
 	}
 
 	return t.holdersCache.insiderRoster, nil
+}
+
+// InsiderRoster returns the list of company insiders.
+//
+// Deprecated: Use InsiderRosterHolders instead.
+func (t *Ticker) InsiderRoster() ([]models.InsiderHolder, error) {
+	return t.InsiderRosterHolders()
 }
 
 // InsiderPurchases returns insider purchase activity summary.
