@@ -121,11 +121,28 @@ go-yfinance/
 - [DESIGN.md](./DESIGN.md) - Architecture and implementation roadmap
 - [STATUS.md](./STATUS.md) - Current implementation progress and status
 
+## Credits
+
+This project is a Go implementation inspired by the Python library [yfinance](https://github.com/ranaroussi/yfinance).
+Special thanks to [Ran Aroussi](https://github.com/ranaroussi) and all contributors of the original project for their excellent work.
+
+### Dependencies
+
+- [CycleTLS](https://github.com/Danny-Dasilva/CycleTLS) - TLS fingerprint spoofing
+- [gorilla/websocket](https://github.com/gorilla/websocket) - WebSocket client for real-time streaming
+
+## Disclaimer
+
+> **Please read this carefully before using this library.**
+
+1. **Unofficial API**: This library is **not affiliated with, endorsed by, or connected to Yahoo! Finance**. It wraps unofficial API endpoints intended for web browser consumption.
+
+2. **Terms of Service**: Use of this library must comply with [Yahoo!'s Terms of Service](https://policies.yahoo.com/us/en/yahoo/terms/index.htm). Users are solely responsible for ensuring their usage is compliant.
+
+3. **Risk of Blocking**: Since this library relies on unofficial methods, Yahoo! Finance may change their API structure or block IP addresses making excessive requests at any time without notice.
+
+4. **No Warranty**: This software is provided "as is", without warranty of any kind, express or implied. The authors shall not be held liable for any damages or legal issues arising from the use of this software.
+
 ## License
 
 MIT License
-
-## Acknowledgments
-
-- [yfinance](https://github.com/ranaroussi/yfinance) - The original Python library
-- [CycleTLS](https://github.com/Danny-Dasilva/CycleTLS) - TLS fingerprint spoofing
