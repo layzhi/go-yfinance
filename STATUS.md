@@ -13,7 +13,7 @@ For architecture and design details, see [DESIGN.md](./DESIGN.md).
 | 2 | Options | ✅ Complete | 100% |
 | 3 | Financials | ✅ Complete | 100% |
 | 4 | Analysis | ✅ Complete | 100% |
-| 5 | Holdings & Actions | ⬜ Not Started | 0% |
+| 5 | Holdings & Actions | ✅ Complete | 100% |
 | 6 | Search & Screener | ⬜ Not Started | 0% |
 | 7 | Multi-ticker & Batch | ⬜ Not Started | 0% |
 | 8 | Real-time WebSocket | ⬜ Not Started | 0% |
@@ -197,16 +197,47 @@ For architecture and design details, see [DESIGN.md](./DESIGN.md).
 
 ---
 
-## Phase 5: Holdings & Actions ⬜
+## Phase 5: Holdings & Actions ✅
 
-**Status**: Not Started
+**Status**: Complete
+**Branch**: `phase5/holdings` (merged to main)
 
-### Planned Items
+### Completed Items
 
-- [ ] Institutional Holders
-- [ ] Mutual Fund Holders
-- [ ] Insider Transactions
-- [ ] Calendar Events
+- [x] **Holder Models** (`pkg/models/holders.go`)
+  - `MajorHolders`: Major shareholders breakdown (insiders, institutions)
+  - `Holder`: Institutional or mutual fund holder information
+  - `InsiderTransaction`: Insider purchase/sale transaction
+  - `InsiderHolder`: Company insider with holdings and TotalShares() helper
+  - `InsiderPurchases`: Net share purchase activity summary
+  - `HoldersData`: Aggregate holder data container
+
+- [x] **Calendar Model** (`pkg/models/calendar.go`)
+  - `Calendar`: Upcoming events (dividend/earnings dates, estimates)
+  - Helper methods: `HasEarnings()`, `HasDividend()`, `NextEarningsDate()`
+
+- [x] **Holders Methods** (`pkg/ticker/holders.go`)
+  - `MajorHolders()`: Major shareholders breakdown
+  - `InstitutionalHolders()`: Institutional holder list
+  - `MutualFundHolders()`: Mutual fund holder list
+  - `InsiderTransactions()`: Insider transaction history
+  - `InsiderRoster()`: Company insiders list
+  - `InsiderPurchases()`: Insider purchase activity summary
+  - Caching for all holders data
+
+- [x] **Calendar Methods** (`pkg/ticker/calendar.go`)
+  - `Calendar()`: Upcoming events (earnings, dividends)
+  - Parses dividend dates, earnings dates, and estimates
+
+### API Modules Used
+
+- `majorHoldersBreakdown`: Major holders percentages
+- `institutionOwnership`: Institutional holder list
+- `fundOwnership`: Mutual fund holder list
+- `insiderTransactions`: Insider transaction history
+- `insiderHolders`: Insider roster
+- `netSharePurchaseActivity`: Net purchase summary
+- `calendarEvents`: Upcoming earnings/dividend dates
 
 ---
 
@@ -289,7 +320,8 @@ main
 ├── phase4/analysis (merged)
 │   ├── phase4/analysis-models
 │   └── phase4/analysis-methods
-├── phase5/holdings (future)
+├── phase5/holdings (merged)
+├── phase6/search (future)
 └── ...
 ```
 
