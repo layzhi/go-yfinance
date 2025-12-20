@@ -83,22 +83,25 @@ git checkout main
 git merge phase{N}/{feature-name}
 ```
 
-### 7. Push and Verify Documentation
+### 7. Generate Documentation
 
-**After merging to main:**
+**Before committing, generate API documentation locally:**
 
-1. Push to remote:
 ```bash
+make docs
+```
+
+This generates `docs/API.md` using gomarkdoc. Review the generated documentation for accuracy.
+
+### 8. Commit and Push
+
+```bash
+git add .
+git commit -m "feat: complete phase N"
 git push origin main
 ```
 
-2. Wait for CI/CD to complete (GitHub Actions)
-
-3. Verify documentation was generated correctly:
-   - Check `docs/API.md` was updated
-   - Review generated documentation for accuracy
-
-4. Only proceed to next phase after verification
+Include the generated `docs/API.md` in your commit.
 
 ## Code Style Guidelines
 
@@ -157,24 +160,35 @@ func (t *Ticker) OldMethod() (*Result, error) {
 }
 ```
 
+## Makefile Commands
+
+| Command | Description |
+|---------|-------------|
+| `make build` | Build the project |
+| `make test` | Run tests |
+| `make test-cover` | Run tests with coverage report |
+| `make lint` | Run golangci-lint |
+| `make docs` | Generate API documentation |
+| `make clean` | Clean build artifacts |
+| `make help` | Show available commands |
+
 ## Pre-Phase Checklist
 
 Before starting a new phase:
 
 - [ ] Previous phase is merged to main
 - [ ] Previous phase is pushed to remote
-- [ ] CI/CD documentation generation completed
-- [ ] Documentation verified for accuracy
+- [ ] Documentation generated and committed (`make docs`)
 - [ ] API consistency with Python yfinance verified
 
 ## Post-Phase Checklist
 
 After completing a phase:
 
-- [ ] All tests pass
+- [ ] All tests pass (`make test`)
 - [ ] Documentation updated (doc.go, STATUS.md)
 - [ ] API consistency verified with Python yfinance
+- [ ] API documentation generated (`make docs`)
 - [ ] Code merged to main
 - [ ] Changes pushed to remote
-- [ ] CI/CD documentation generation verified
 - [ ] Ready for next phase
