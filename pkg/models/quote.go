@@ -58,7 +58,7 @@ type Quote struct {
 	AverageDailyVolume10Day  int64 `json:"averageDailyVolume10Day"`
 
 	// Market cap and shares
-	MarketCap        int64 `json:"marketCap"`
+	MarketCap         int64 `json:"marketCap"`
 	SharesOutstanding int64 `json:"sharesOutstanding"`
 
 	// Dividend info
@@ -67,15 +67,15 @@ type Quote struct {
 	DividendDate                int64   `json:"dividendDate,omitempty"`
 
 	// Earnings info
-	TrailingPE          float64 `json:"trailingPE,omitempty"`
-	ForwardPE           float64 `json:"forwardPE,omitempty"`
+	TrailingPE              float64 `json:"trailingPE,omitempty"`
+	ForwardPE               float64 `json:"forwardPE,omitempty"`
 	EpsTrailingTwelveMonths float64 `json:"epsTrailingTwelveMonths,omitempty"`
-	EpsForward          float64 `json:"epsForward,omitempty"`
-	EpsCurrentYear      float64 `json:"epsCurrentYear,omitempty"`
+	EpsForward              float64 `json:"epsForward,omitempty"`
+	EpsCurrentYear          float64 `json:"epsCurrentYear,omitempty"`
 
 	// Book value
-	BookValue         float64 `json:"bookValue,omitempty"`
-	PriceToBook       float64 `json:"priceToBook,omitempty"`
+	BookValue   float64 `json:"bookValue,omitempty"`
+	PriceToBook float64 `json:"priceToBook,omitempty"`
 
 	// Bid/Ask
 	Bid     float64 `json:"bid,omitempty"`

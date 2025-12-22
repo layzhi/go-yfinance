@@ -39,42 +39,42 @@ var exchangeTimezones = map[string]string{
 	"VIE": "Europe/Vienna",    // Vienna
 
 	// Asian exchanges
-	"TYO": "Asia/Tokyo",         // Tokyo
-	"JPX": "Asia/Tokyo",         // Japan Exchange
-	"HKG": "Asia/Hong_Kong",     // Hong Kong
-	"SHH": "Asia/Shanghai",      // Shanghai
-	"SHZ": "Asia/Shanghai",      // Shenzhen
-	"KSC": "Asia/Seoul",         // Korea (KOSPI)
-	"KOE": "Asia/Seoul",         // Korea (KOSDAQ)
-	"SGX": "Asia/Singapore",     // Singapore
-	"BOM": "Asia/Kolkata",       // Mumbai BSE
-	"NSI": "Asia/Kolkata",       // Mumbai NSE
-	"TAI": "Asia/Taipei",        // Taiwan
-	"TWO": "Asia/Taipei",        // Taiwan OTC
-	"JKT": "Asia/Jakarta",       // Jakarta
-	"KLS": "Asia/Kuala_Lumpur",  // Kuala Lumpur
-	"BKK": "Asia/Bangkok",       // Bangkok
+	"TYO": "Asia/Tokyo",        // Tokyo
+	"JPX": "Asia/Tokyo",        // Japan Exchange
+	"HKG": "Asia/Hong_Kong",    // Hong Kong
+	"SHH": "Asia/Shanghai",     // Shanghai
+	"SHZ": "Asia/Shanghai",     // Shenzhen
+	"KSC": "Asia/Seoul",        // Korea (KOSPI)
+	"KOE": "Asia/Seoul",        // Korea (KOSDAQ)
+	"SGX": "Asia/Singapore",    // Singapore
+	"BOM": "Asia/Kolkata",      // Mumbai BSE
+	"NSI": "Asia/Kolkata",      // Mumbai NSE
+	"TAI": "Asia/Taipei",       // Taiwan
+	"TWO": "Asia/Taipei",       // Taiwan OTC
+	"JKT": "Asia/Jakarta",      // Jakarta
+	"KLS": "Asia/Kuala_Lumpur", // Kuala Lumpur
+	"BKK": "Asia/Bangkok",      // Bangkok
 
 	// Oceania
 	"ASX": "Australia/Sydney", // Australian Securities Exchange
 	"NZE": "Pacific/Auckland", // New Zealand
 
 	// Americas (non-US)
-	"TSX": "America/Toronto",     // Toronto
-	"CVE": "America/Toronto",     // TSX Venture
-	"NEO": "America/Toronto",     // NEO Exchange
-	"MEX": "America/Mexico_City", // Mexico
-	"SAO": "America/Sao_Paulo",   // Brazil
+	"TSX": "America/Toronto",                // Toronto
+	"CVE": "America/Toronto",                // TSX Venture
+	"NEO": "America/Toronto",                // NEO Exchange
+	"MEX": "America/Mexico_City",            // Mexico
+	"SAO": "America/Sao_Paulo",              // Brazil
 	"BUE": "America/Argentina/Buenos_Aires", // Buenos Aires
 
 	// Crypto - 24/7
-	"CCC": "UTC", // Crypto
+	"CCC": "UTC",             // Crypto
 	"CME": "America/Chicago", // CME (futures)
 
 	// Middle East / Africa
-	"TLV": "Asia/Jerusalem",       // Tel Aviv
-	"JSE": "Africa/Johannesburg",  // Johannesburg
-	"DFM": "Asia/Dubai",           // Dubai
+	"TLV": "Asia/Jerusalem",      // Tel Aviv
+	"JSE": "Africa/Johannesburg", // Johannesburg
+	"DFM": "Asia/Dubai",          // Dubai
 }
 
 // GetTimezone returns the timezone for a given exchange code.

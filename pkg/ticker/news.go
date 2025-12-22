@@ -22,11 +22,11 @@ type newsAPIResponse struct {
 type newsStreamItem struct {
 	ID      string `json:"id"`
 	Content struct {
-		ID           string `json:"id"`
-		ContentType  string `json:"contentType"`
-		Title        string `json:"title"`
-		PubDate      string `json:"pubDate"`
-		Thumbnail    *struct {
+		ID          string `json:"id"`
+		ContentType string `json:"contentType"`
+		Title       string `json:"title"`
+		PubDate     string `json:"pubDate"`
+		Thumbnail   *struct {
 			Resolutions []models.ThumbnailResolution `json:"resolutions"`
 		} `json:"thumbnail"`
 		ClickThroughURL *struct {

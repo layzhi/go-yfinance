@@ -72,11 +72,11 @@ type WebSocket struct {
 	heartbeatInterval time.Duration
 	reconnectDelay    time.Duration
 
-	mu           sync.RWMutex
-	done         chan struct{}
+	mu            sync.RWMutex
+	done          chan struct{}
 	heartbeatDone chan struct{}
-	isConnected  bool
-	isListening  bool
+	isConnected   bool
+	isListening   bool
 }
 
 // Option is a function that configures a WebSocket.

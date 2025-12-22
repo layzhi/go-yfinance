@@ -25,12 +25,12 @@ func (r *Recommendation) Total() int {
 
 // PriceTarget represents analyst price targets.
 type PriceTarget struct {
-	Current         float64 `json:"current"`
-	High            float64 `json:"high"`
-	Low             float64 `json:"low"`
-	Mean            float64 `json:"mean"`
-	Median          float64 `json:"median"`
-	NumberOfAnalysts int    `json:"numberOfAnalysts"`
+	Current          float64 `json:"current"`
+	High             float64 `json:"high"`
+	Low              float64 `json:"low"`
+	Mean             float64 `json:"mean"`
+	Median           float64 `json:"median"`
+	NumberOfAnalysts int     `json:"numberOfAnalysts"`
 	// Additional recommendation data
 	RecommendationKey  string  `json:"recommendationKey"`  // "buy", "hold", "sell"
 	RecommendationMean float64 `json:"recommendationMean"` // 1.0 (strong buy) to 5.0 (strong sell)
@@ -62,21 +62,21 @@ type RevenueEstimate struct {
 
 // EPSTrend represents EPS trend data for a period.
 type EPSTrend struct {
-	Period    string  `json:"period"`
-	Current   float64 `json:"current"`
-	SevenDays float64 `json:"7daysAgo"`
+	Period     string  `json:"period"`
+	Current    float64 `json:"current"`
+	SevenDays  float64 `json:"7daysAgo"`
 	ThirtyDays float64 `json:"30daysAgo"`
-	SixtyDays float64 `json:"60daysAgo"`
+	SixtyDays  float64 `json:"60daysAgo"`
 	NinetyDays float64 `json:"90daysAgo"`
 }
 
 // EPSRevision represents EPS revision data for a period.
 type EPSRevision struct {
-	Period        string `json:"period"`
-	UpLast7Days   int    `json:"upLast7days"`
-	UpLast30Days  int    `json:"upLast30days"`
-	DownLast7Days int    `json:"downLast7days"`
-	DownLast30Days int   `json:"downLast30days"`
+	Period         string `json:"period"`
+	UpLast7Days    int    `json:"upLast7days"`
+	UpLast30Days   int    `json:"upLast30days"`
+	DownLast7Days  int    `json:"downLast7days"`
+	DownLast30Days int    `json:"downLast30days"`
 }
 
 // EarningsHistory represents historical earnings data.
@@ -96,21 +96,21 @@ type EarningsHistoryItem struct {
 
 // GrowthEstimate represents growth estimates from various sources.
 type GrowthEstimate struct {
-	Period        string   `json:"period"`
-	StockGrowth   *float64 `json:"stockGrowth,omitempty"`   // nil if not available
+	Period         string   `json:"period"`
+	StockGrowth    *float64 `json:"stockGrowth,omitempty"` // nil if not available
 	IndustryGrowth *float64 `json:"industryGrowth,omitempty"`
-	SectorGrowth  *float64 `json:"sectorGrowth,omitempty"`
-	IndexGrowth   *float64 `json:"indexGrowth,omitempty"`
+	SectorGrowth   *float64 `json:"sectorGrowth,omitempty"`
+	IndexGrowth    *float64 `json:"indexGrowth,omitempty"`
 }
 
 // AnalysisData holds all analysis data for a ticker.
 type AnalysisData struct {
-	Recommendations   *RecommendationTrend   `json:"recommendations,omitempty"`
-	PriceTarget       *PriceTarget           `json:"priceTarget,omitempty"`
-	EarningsEstimates []EarningsEstimate     `json:"earningsEstimates,omitempty"`
-	RevenueEstimates  []RevenueEstimate      `json:"revenueEstimates,omitempty"`
-	EPSTrends         []EPSTrend             `json:"epsTrends,omitempty"`
-	EPSRevisions      []EPSRevision          `json:"epsRevisions,omitempty"`
-	EarningsHistory   *EarningsHistory       `json:"earningsHistory,omitempty"`
-	GrowthEstimates   []GrowthEstimate       `json:"growthEstimates,omitempty"`
+	Recommendations   *RecommendationTrend `json:"recommendations,omitempty"`
+	PriceTarget       *PriceTarget         `json:"priceTarget,omitempty"`
+	EarningsEstimates []EarningsEstimate   `json:"earningsEstimates,omitempty"`
+	RevenueEstimates  []RevenueEstimate    `json:"revenueEstimates,omitempty"`
+	EPSTrends         []EPSTrend           `json:"epsTrends,omitempty"`
+	EPSRevisions      []EPSRevision        `json:"epsRevisions,omitempty"`
+	EarningsHistory   *EarningsHistory     `json:"earningsHistory,omitempty"`
+	GrowthEstimates   []GrowthEstimate     `json:"growthEstimates,omitempty"`
 }

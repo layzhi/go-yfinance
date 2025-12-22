@@ -94,10 +94,10 @@ type Dividend struct {
 
 // Split represents a stock split.
 type Split struct {
-	Date       time.Time `json:"date"`
-	Numerator  float64   `json:"numerator"`
+	Date        time.Time `json:"date"`
+	Numerator   float64   `json:"numerator"`
 	Denominator float64   `json:"denominator"`
-	Ratio      string    `json:"ratio"` // e.g., "4:1"
+	Ratio       string    `json:"ratio"` // e.g., "4:1"
 }
 
 // Actions represents dividend and split actions.

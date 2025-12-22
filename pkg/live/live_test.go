@@ -139,9 +139,9 @@ func TestDecodeProtobuf(t *testing.T) {
 	buf := make([]byte, 0, 50)
 
 	// Field 1: id = "AAPL" (wire type 2 = length-delimited)
-	buf = append(buf, (1<<3)|2)        // tag = (1 << 3) | 2
-	buf = append(buf, 4)               // length = 4
-	buf = append(buf, "AAPL"...)       // value
+	buf = append(buf, (1<<3)|2)  // tag = (1 << 3) | 2
+	buf = append(buf, 4)         // length = 4
+	buf = append(buf, "AAPL"...) // value
 
 	// Field 2: price = 150.25 (wire type 5 = 32-bit)
 	buf = append(buf, (2<<3)|5) // tag = (2 << 3) | 5

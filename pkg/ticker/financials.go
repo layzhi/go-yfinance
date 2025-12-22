@@ -14,10 +14,10 @@ import (
 
 // financialsCache stores cached financial statements.
 type financialsCache struct {
-	incomeAnnual    *models.FinancialStatement
-	incomeQuarterly *models.FinancialStatement
-	balanceAnnual    *models.FinancialStatement
-	balanceQuarterly *models.FinancialStatement
+	incomeAnnual      *models.FinancialStatement
+	incomeQuarterly   *models.FinancialStatement
+	balanceAnnual     *models.FinancialStatement
+	balanceQuarterly  *models.FinancialStatement
 	cashFlowAnnual    *models.FinancialStatement
 	cashFlowQuarterly *models.FinancialStatement
 }

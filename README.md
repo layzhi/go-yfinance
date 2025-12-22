@@ -1,5 +1,9 @@
 # go-yfinance
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/wnjoon/go-yfinance.svg)](https://pkg.go.dev/github.com/wnjoon/go-yfinance)
+[![Go Report Card](https://goreportcard.com/badge/github.com/wnjoon/go-yfinance)](https://goreportcard.com/report/github.com/wnjoon/go-yfinance)
+[![License](https://img.shields.io/github/license/wnjoon/go-yfinance)](LICENSE)
+
 Unofficial Go port of the popular Python library [yfinance](https://github.com/ranaroussi/yfinance).
 
 This project is a Go implementation based on the logic of yfinance. It aims to provide a native Go experience (rewrite) while respecting the original API structure.

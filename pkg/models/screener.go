@@ -130,23 +130,23 @@ type PredefinedScreener string
 
 const (
 	// Equity Screeners
-	ScreenerAggressiveSmallCaps   PredefinedScreener = "aggressive_small_caps"
-	ScreenerDayGainers            PredefinedScreener = "day_gainers"
-	ScreenerDayLosers             PredefinedScreener = "day_losers"
-	ScreenerGrowthTech            PredefinedScreener = "growth_technology_stocks"
-	ScreenerMostActives           PredefinedScreener = "most_actives"
-	ScreenerMostShorted           PredefinedScreener = "most_shorted_stocks"
-	ScreenerSmallCapGainers       PredefinedScreener = "small_cap_gainers"
-	ScreenerUndervaluedGrowth     PredefinedScreener = "undervalued_growth_stocks"
-	ScreenerUndervaluedLargeCaps  PredefinedScreener = "undervalued_large_caps"
+	ScreenerAggressiveSmallCaps  PredefinedScreener = "aggressive_small_caps"
+	ScreenerDayGainers           PredefinedScreener = "day_gainers"
+	ScreenerDayLosers            PredefinedScreener = "day_losers"
+	ScreenerGrowthTech           PredefinedScreener = "growth_technology_stocks"
+	ScreenerMostActives          PredefinedScreener = "most_actives"
+	ScreenerMostShorted          PredefinedScreener = "most_shorted_stocks"
+	ScreenerSmallCapGainers      PredefinedScreener = "small_cap_gainers"
+	ScreenerUndervaluedGrowth    PredefinedScreener = "undervalued_growth_stocks"
+	ScreenerUndervaluedLargeCaps PredefinedScreener = "undervalued_large_caps"
 
 	// Fund Screeners
-	ScreenerConservativeForeign   PredefinedScreener = "conservative_foreign_funds"
-	ScreenerHighYieldBond         PredefinedScreener = "high_yield_bond"
-	ScreenerPortfolioAnchors      PredefinedScreener = "portfolio_anchors"
-	ScreenerSolidLargeGrowth      PredefinedScreener = "solid_large_growth_funds"
-	ScreenerSolidMidcapGrowth     PredefinedScreener = "solid_midcap_growth_funds"
-	ScreenerTopMutualFunds        PredefinedScreener = "top_mutual_funds"
+	ScreenerConservativeForeign PredefinedScreener = "conservative_foreign_funds"
+	ScreenerHighYieldBond       PredefinedScreener = "high_yield_bond"
+	ScreenerPortfolioAnchors    PredefinedScreener = "portfolio_anchors"
+	ScreenerSolidLargeGrowth    PredefinedScreener = "solid_large_growth_funds"
+	ScreenerSolidMidcapGrowth   PredefinedScreener = "solid_midcap_growth_funds"
+	ScreenerTopMutualFunds      PredefinedScreener = "top_mutual_funds"
 )
 
 // AllPredefinedScreeners returns all available predefined screener names.

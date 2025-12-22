@@ -61,13 +61,13 @@ func TestClearCacheIncludesAnalysis(t *testing.T) {
 func TestAnalysisModels(t *testing.T) {
 	// Test PriceTarget
 	pt := models.PriceTarget{
-		Current:          250.00,
-		High:             350.00,
-		Low:              200.00,
-		Mean:             287.50,
-		Median:           290.00,
-		NumberOfAnalysts: 40,
-		RecommendationKey: "buy",
+		Current:            250.00,
+		High:               350.00,
+		Low:                200.00,
+		Mean:               287.50,
+		Median:             290.00,
+		NumberOfAnalysts:   40,
+		RecommendationKey:  "buy",
 		RecommendationMean: 2.1,
 	}
 
