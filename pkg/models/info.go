@@ -93,7 +93,7 @@ type Info struct {
 	ExDividendDate              int64   `json:"exDividendDate,omitempty"`
 	PayoutRatio                 float64 `json:"payoutRatio,omitempty"`
 	FiveYearAvgDividendYield    float64 `json:"fiveYearAvgDividendYield,omitempty"`
-	Beta5Y                      float64 `json:"beta,omitempty"`
+	Beta5Y                      float64 `json:"beta5Y,omitempty"`
 	TrailingPE                  float64 `json:"trailingPE,omitempty"`
 	Volume                      int64   `json:"volume,omitempty"`
 	RegularMarketVolume         int64   `json:"regularMarketVolume,omitempty"`

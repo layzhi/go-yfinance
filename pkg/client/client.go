@@ -92,7 +92,7 @@ func (c *Client) Get(rawURL string, params url.Values) (*Response, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	if params != nil && len(params) > 0 {
+	if len(params) > 0 {
 		rawURL = fmt.Sprintf("%s?%s", rawURL, params.Encode())
 	}
 
@@ -163,7 +163,7 @@ func (c *Client) Post(rawURL string, params url.Values, body map[string]string) 
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	if params != nil && len(params) > 0 {
+	if len(params) > 0 {
 		rawURL = fmt.Sprintf("%s?%s", rawURL, params.Encode())
 	}
 
@@ -197,7 +197,7 @@ func (c *Client) PostJSON(rawURL string, params url.Values, body []byte) (*Respo
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	if params != nil && len(params) > 0 {
+	if len(params) > 0 {
 		rawURL = fmt.Sprintf("%s?%s", rawURL, params.Encode())
 	}
 

@@ -56,7 +56,6 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
-	"sync"
 
 	"github.com/wnjoon/go-yfinance/internal/endpoints"
 	"github.com/wnjoon/go-yfinance/pkg/client"
@@ -66,7 +65,6 @@ import (
 // Screener provides Yahoo Finance stock screener functionality.
 type Screener struct {
 	client     *client.Client
-	mu         sync.RWMutex
 	ownsClient bool
 }
 

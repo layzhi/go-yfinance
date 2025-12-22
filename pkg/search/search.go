@@ -42,7 +42,6 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
-	"sync"
 
 	"github.com/wnjoon/go-yfinance/internal/endpoints"
 	"github.com/wnjoon/go-yfinance/pkg/client"
@@ -52,7 +51,6 @@ import (
 // Search provides Yahoo Finance search functionality.
 type Search struct {
 	client     *client.Client
-	mu         sync.RWMutex
 	ownsClient bool
 }
 
