@@ -273,6 +273,346 @@ func WithTTL(ttl time.Duration) Option
 
 WithTTL sets the default TTL for cache entries.
 
+# calendars
+
+```go
+import "github.com/wnjoon/go-yfinance/pkg/calendars"
+```
+
+Package calendars provides Yahoo Finance economic calendar functionality.
+
+### Overview
+
+The calendars package allows retrieving various financial calendars including earnings announcements, IPOs, economic events, and stock splits. This is useful for tracking upcoming market events and financial releases.
+
+### Basic Usage
+
+```
+cal, err := calendars.New()
+if err != nil {
+    log.Fatal(err)
+}
+defer cal.Close()
+
+// Get earnings calendar
+earnings, err := cal.Earnings(nil)
+if err != nil {
+    log.Fatal(err)
+}
+for _, e := range earnings {
+    fmt.Printf("%s: %s, EPS Est: %.2f\n",
+        e.Symbol, e.CompanyName, e.EPSEstimate)
+}
+```
+
+### Earnings Calendar
+
+Get upcoming and recent earnings announcements:
+
+```
+earnings, err := cal.Earnings(&models.CalendarOptions{
+    Limit: 50,
+})
+for _, e := range earnings {
+    fmt.Printf("%s: Est %.2f, Actual %.2f, Surprise %.2f%%\n",
+        e.Symbol, e.EPSEstimate, e.EPSActual, e.SurprisePercent)
+}
+```
+
+### IPO Calendar
+
+Get upcoming and recent IPO information:
+
+```
+ipos, err := cal.IPOs(nil)
+for _, ipo := range ipos {
+    fmt.Printf("%s: %s, Price: $%.2f-$%.2f\n",
+        ipo.Symbol, ipo.CompanyName, ipo.PriceFrom, ipo.PriceTo)
+}
+```
+
+### Economic Events
+
+Get economic releases and indicators:
+
+```
+events, err := cal.EconomicEvents(nil)
+for _, e := range events {
+    fmt.Printf("%s (%s): Expected %.2f, Actual %.2f\n",
+        e.Event, e.Region, e.Expected, e.Actual)
+}
+```
+
+### Stock Splits
+
+Get stock split events:
+
+```
+splits, err := cal.Splits(nil)
+for _, s := range splits {
+    fmt.Printf("%s: %s (%s)\n",
+        s.Symbol, s.CompanyName, s.Ratio)
+}
+```
+
+### Custom Date Range
+
+Specify a custom date range for calendar queries:
+
+```
+start := time.Now()
+end := start.AddDate(0, 1, 0) // 1 month ahead
+
+cal, err := calendars.New(calendars.WithDateRange(start, end))
+// Or per-query:
+earnings, err := cal.Earnings(&models.CalendarOptions{
+    Start: start,
+    End:   end,
+    Limit: 100,
+})
+```
+
+### Calendar Options
+
+Configure calendar queries with CalendarOptions:
+
+```
+opts := &models.CalendarOptions{
+    Start:  time.Now(),
+    End:    time.Now().AddDate(0, 0, 30),
+    Limit:  50,   // Max results (capped at 100)
+    Offset: 0,    // Pagination offset
+}
+earnings, err := cal.Earnings(opts)
+```
+
+### Custom Client
+
+Provide a custom HTTP client:
+
+```
+c, _ := client.New()
+cal, _ := calendars.New(calendars.WithClient(c))
+```
+
+### Thread Safety
+
+All Calendars methods are safe for concurrent use from multiple goroutines.
+
+### Python Compatibility
+
+This package implements the same functionality as Python yfinance's Calendars class:
+
+```
+Python                                  | Go
+----------------------------------------|----------------------------------------
+yf.Calendars()                          | calendars.New()
+yf.Calendars(start, end)                | calendars.New(WithDateRange(start, end))
+cal.get_earnings_calendar(limit)        | cal.Earnings(&CalendarOptions{Limit: n})
+cal.get_ipo_info_calendar()             | cal.IPOs(nil)
+cal.get_economic_events_calendar()      | cal.EconomicEvents(nil)
+cal.get_splits_calendar()               | cal.Splits(nil)
+cal.earnings_calendar                   | cal.Earnings(nil)
+cal.ipo_info_calendar                   | cal.IPOs(nil)
+cal.economic_events_calendar            | cal.EconomicEvents(nil)
+cal.splits_calendar                     | cal.Splits(nil)
+```
+
+## Index
+
+- [type Calendars](<#Calendars>)
+  - [func New\(opts ...Option\) \(\*Calendars, error\)](<#New>)
+  - [func \(c \*Calendars\) ClearCache\(\)](<#Calendars.ClearCache>)
+  - [func \(c \*Calendars\) Close\(\)](<#Calendars.Close>)
+  - [func \(c \*Calendars\) Earnings\(opts \*models.CalendarOptions\) \(\[\]models.EarningsEvent, error\)](<#Calendars.Earnings>)
+  - [func \(c \*Calendars\) EconomicEvents\(opts \*models.CalendarOptions\) \(\[\]models.EconomicEvent, error\)](<#Calendars.EconomicEvents>)
+  - [func \(c \*Calendars\) IPOs\(opts \*models.CalendarOptions\) \(\[\]models.IPOEvent, error\)](<#Calendars.IPOs>)
+  - [func \(c \*Calendars\) Splits\(opts \*models.CalendarOptions\) \(\[\]models.CalendarSplitEvent, error\)](<#Calendars.Splits>)
+- [type Option](<#Option>)
+  - [func WithClient\(c \*client.Client\) Option](<#WithClient>)
+  - [func WithDateRange\(start, end time.Time\) Option](<#WithDateRange>)
+
+
+<a name="Calendars"></a>
+## type Calendars
+
+Calendars provides access to Yahoo Finance economic calendars.
+
+Calendars allows retrieving earnings, IPO, economic events, and stock splits data.
+
+```go
+type Calendars struct {
+    // contains filtered or unexported fields
+}
+```
+
+<a name="New"></a>
+### func New
+
+```go
+func New(opts ...Option) (*Calendars, error)
+```
+
+New creates a new Calendars instance.
+
+By default, the date range is from today to 7 days from now.
+
+Example:
+
+```
+cal, err := calendars.New()
+if err != nil {
+    log.Fatal(err)
+}
+defer cal.Close()
+
+earnings, err := cal.Earnings(nil)
+for _, e := range earnings {
+    fmt.Printf("%s: %s, EPS Est: %.2f\n", e.Symbol, e.CompanyName, e.EPSEstimate)
+}
+```
+
+<a name="Calendars.ClearCache"></a>
+### func \(\*Calendars\) ClearCache
+
+```go
+func (c *Calendars) ClearCache()
+```
+
+ClearCache clears all cached calendar data.
+
+<a name="Calendars.Close"></a>
+### func \(\*Calendars\) Close
+
+```go
+func (c *Calendars) Close()
+```
+
+Close releases resources used by the Calendars instance.
+
+<a name="Calendars.Earnings"></a>
+### func \(\*Calendars\) Earnings
+
+```go
+func (c *Calendars) Earnings(opts *models.CalendarOptions) ([]models.EarningsEvent, error)
+```
+
+Earnings retrieves the earnings calendar.
+
+Returns upcoming and recent earnings announcements with EPS estimates.
+
+Example:
+
+```
+earnings, err := cal.Earnings(nil)
+if err != nil {
+    log.Fatal(err)
+}
+for _, e := range earnings {
+    fmt.Printf("%s: Est %.2f, Actual %.2f, Surprise %.2f%%\n",
+        e.Symbol, e.EPSEstimate, e.EPSActual, e.SurprisePercent)
+}
+```
+
+<a name="Calendars.EconomicEvents"></a>
+### func \(\*Calendars\) EconomicEvents
+
+```go
+func (c *Calendars) EconomicEvents(opts *models.CalendarOptions) ([]models.EconomicEvent, error)
+```
+
+EconomicEvents retrieves the economic events calendar.
+
+Returns upcoming and recent economic releases and indicators.
+
+Example:
+
+```
+events, err := cal.EconomicEvents(nil)
+if err != nil {
+    log.Fatal(err)
+}
+for _, e := range events {
+    fmt.Printf("%s (%s): Expected %.2f, Actual %.2f\n",
+        e.Event, e.Region, e.Expected, e.Actual)
+}
+```
+
+<a name="Calendars.IPOs"></a>
+### func \(\*Calendars\) IPOs
+
+```go
+func (c *Calendars) IPOs(opts *models.CalendarOptions) ([]models.IPOEvent, error)
+```
+
+IPOs retrieves the IPO calendar.
+
+Returns upcoming and recent IPO information.
+
+Example:
+
+```
+ipos, err := cal.IPOs(nil)
+if err != nil {
+    log.Fatal(err)
+}
+for _, ipo := range ipos {
+    fmt.Printf("%s: %s, Price Range: $%.2f-$%.2f\n",
+        ipo.Symbol, ipo.CompanyName, ipo.PriceFrom, ipo.PriceTo)
+}
+```
+
+<a name="Calendars.Splits"></a>
+### func \(\*Calendars\) Splits
+
+```go
+func (c *Calendars) Splits(opts *models.CalendarOptions) ([]models.CalendarSplitEvent, error)
+```
+
+Splits retrieves the stock splits calendar.
+
+Returns upcoming and recent stock split events.
+
+Example:
+
+```
+splits, err := cal.Splits(nil)
+if err != nil {
+    log.Fatal(err)
+}
+for _, s := range splits {
+    fmt.Printf("%s: %s, Old: %.0f, New: %.0f\n",
+        s.Symbol, s.CompanyName, s.OldShareWorth, s.NewShareWorth)
+}
+```
+
+<a name="Option"></a>
+## type Option
+
+Option is a function that configures a Calendars instance.
+
+```go
+type Option func(*Calendars)
+```
+
+<a name="WithClient"></a>
+### func WithClient
+
+```go
+func WithClient(c *client.Client) Option
+```
+
+WithClient sets a custom HTTP client for the Calendars instance.
+
+<a name="WithDateRange"></a>
+### func WithDateRange
+
+```go
+func WithDateRange(start, end time.Time) Option
+```
+
+WithDateRange sets the date range for calendar queries.
+
 # client
 
 ```go
@@ -1163,6 +1503,468 @@ func (c *Config) SetUserAgent(ua string) *Config
 
 SetUserAgent sets the User\-Agent string.
 
+# industry
+
+```go
+import "github.com/wnjoon/go-yfinance/pkg/industry"
+```
+
+Package industry provides Yahoo Finance industry data functionality.
+
+### Overview
+
+The industry package allows retrieving financial industry information including overview data, top companies, sector information, top performing companies, and top growth companies. This is useful for industry\-based analysis and screening.
+
+### Basic Usage
+
+```
+i, err := industry.New("semiconductors")
+if err != nil {
+    log.Fatal(err)
+}
+defer i.Close()
+
+// Get industry overview
+overview, err := i.Overview()
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("Companies: %d\n", overview.CompaniesCount)
+fmt.Printf("Market Cap: $%.2f\n", overview.MarketCap)
+```
+
+### Sector Information
+
+Get the parent sector of an industry:
+
+```
+sectorKey, err := i.SectorKey()
+sectorName, err := i.SectorName()
+fmt.Printf("Part of: %s (%s)\n", sectorName, sectorKey)
+```
+
+### Top Performing Companies
+
+Get companies with highest year\-to\-date returns:
+
+```
+companies, err := i.TopPerformingCompanies()
+if err != nil {
+    log.Fatal(err)
+}
+for _, c := range companies {
+    fmt.Printf("%s: YTD %.2f%%, Target: $%.2f\n",
+        c.Symbol, c.YTDReturn*100, c.TargetPrice)
+}
+```
+
+### Top Growth Companies
+
+Get companies with highest growth estimates:
+
+```
+companies, err := i.TopGrowthCompanies()
+if err != nil {
+    log.Fatal(err)
+}
+for _, c := range companies {
+    fmt.Printf("%s: Growth Estimate: %.2f%%\n",
+        c.Symbol, c.GrowthEstimate*100)
+}
+```
+
+### Predefined Industries
+
+Common industry identifiers are available as constants:
+
+```
+i, _ := industry.NewWithPredefined(models.IndustrySemiconductors)
+i, _ := industry.NewWithPredefined(models.IndustryBiotechnology)
+i, _ := industry.NewWithPredefined(models.IndustryBanksDiversified)
+```
+
+Available predefined industries \(grouped by sector\):
+
+Technology:
+
+- IndustrySemiconductors
+- IndustrySoftwareInfrastructure
+- IndustrySoftwareApplication
+- IndustryConsumerElectronics
+- IndustryComputerHardware
+
+Healthcare:
+
+- IndustryBiotechnology
+- IndustryDrugManufacturersGeneral
+- IndustryMedicalDevices
+- IndustryHealthcarePlans
+
+Financial Services:
+
+- IndustryBanksDiversified
+- IndustryBanksRegional
+- IndustryAssetManagement
+- IndustryCapitalMarkets
+
+Energy:
+
+- IndustryOilGasIntegrated
+- IndustryOilGasEP
+- IndustryOilGasMidstream
+
+### Caching
+
+Industry data is cached after the first fetch. To refresh:
+
+```
+i.ClearCache()
+```
+
+### Custom Client
+
+Provide a custom HTTP client:
+
+```
+c, _ := client.New()
+i, _ := industry.New("semiconductors", industry.WithClient(c))
+```
+
+### Thread Safety
+
+All Industry methods are safe for concurrent use from multiple goroutines.
+
+### Python Compatibility
+
+This package implements the same functionality as Python yfinance's Industry class:
+
+```
+Python                              | Go
+------------------------------------|------------------------------------
+yf.Industry("semiconductors")       | industry.New("semiconductors")
+industry.key                        | i.Key()
+industry.name                       | i.Name()
+industry.symbol                     | i.Symbol()
+industry.sector_key                 | i.SectorKey()
+industry.sector_name                | i.SectorName()
+industry.overview                   | i.Overview()
+industry.top_companies              | i.TopCompanies()
+industry.top_performing_companies   | i.TopPerformingCompanies()
+industry.top_growth_companies       | i.TopGrowthCompanies()
+industry.research_reports           | i.ResearchReports()
+```
+
+## Index
+
+- [type Industry](<#Industry>)
+  - [func New\(key string, opts ...Option\) \(\*Industry, error\)](<#New>)
+  - [func NewWithPredefined\(ind models.PredefinedIndustry, opts ...Option\) \(\*Industry, error\)](<#NewWithPredefined>)
+  - [func \(i \*Industry\) ClearCache\(\)](<#Industry.ClearCache>)
+  - [func \(i \*Industry\) Close\(\)](<#Industry.Close>)
+  - [func \(i \*Industry\) Data\(\) \(\*models.IndustryData, error\)](<#Industry.Data>)
+  - [func \(i \*Industry\) Key\(\) string](<#Industry.Key>)
+  - [func \(i \*Industry\) Name\(\) \(string, error\)](<#Industry.Name>)
+  - [func \(i \*Industry\) Overview\(\) \(models.IndustryOverview, error\)](<#Industry.Overview>)
+  - [func \(i \*Industry\) ResearchReports\(\) \(\[\]models.ResearchReport, error\)](<#Industry.ResearchReports>)
+  - [func \(i \*Industry\) SectorKey\(\) \(string, error\)](<#Industry.SectorKey>)
+  - [func \(i \*Industry\) SectorName\(\) \(string, error\)](<#Industry.SectorName>)
+  - [func \(i \*Industry\) Symbol\(\) \(string, error\)](<#Industry.Symbol>)
+  - [func \(i \*Industry\) TopCompanies\(\) \(\[\]models.IndustryTopCompany, error\)](<#Industry.TopCompanies>)
+  - [func \(i \*Industry\) TopGrowthCompanies\(\) \(\[\]models.GrowthCompany, error\)](<#Industry.TopGrowthCompanies>)
+  - [func \(i \*Industry\) TopPerformingCompanies\(\) \(\[\]models.PerformingCompany, error\)](<#Industry.TopPerformingCompanies>)
+- [type Option](<#Option>)
+  - [func WithClient\(c \*client.Client\) Option](<#WithClient>)
+
+
+<a name="Industry"></a>
+## type Industry
+
+Industry provides access to financial industry data from Yahoo Finance.
+
+Industry allows retrieving industry\-related information such as overview, top companies, sector information, and performing/growth companies.
+
+```go
+type Industry struct {
+    // contains filtered or unexported fields
+}
+```
+
+<a name="New"></a>
+### func New
+
+```go
+func New(key string, opts ...Option) (*Industry, error)
+```
+
+New creates a new Industry instance for the given industry key.
+
+Industry keys are lowercase with hyphens, e.g., "semiconductors", "software\-infrastructure". Use predefined constants from models package for convenience.
+
+Example:
+
+```
+i, err := industry.New("semiconductors")
+if err != nil {
+    log.Fatal(err)
+}
+defer i.Close()
+
+overview, err := i.Overview()
+fmt.Printf("Industry has %d companies\n", overview.CompaniesCount)
+```
+
+<a name="NewWithPredefined"></a>
+### func NewWithPredefined
+
+```go
+func NewWithPredefined(ind models.PredefinedIndustry, opts ...Option) (*Industry, error)
+```
+
+NewWithPredefined creates a new Industry instance using a predefined industry constant.
+
+Example:
+
+```
+i, err := industry.NewWithPredefined(models.IndustrySemiconductors)
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+<a name="Industry.ClearCache"></a>
+### func \(\*Industry\) ClearCache
+
+```go
+func (i *Industry) ClearCache()
+```
+
+ClearCache clears the cached industry data. The next call to any data method will fetch fresh data.
+
+<a name="Industry.Close"></a>
+### func \(\*Industry\) Close
+
+```go
+func (i *Industry) Close()
+```
+
+Close releases resources used by the Industry instance.
+
+<a name="Industry.Data"></a>
+### func \(\*Industry\) Data
+
+```go
+func (i *Industry) Data() (*models.IndustryData, error)
+```
+
+Data returns all industry data.
+
+This fetches and returns the complete industry information including overview, top companies, sector info, and performing/growth companies.
+
+Example:
+
+```
+data, err := i.Data()
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("Industry: %s in Sector: %s\n", data.Name, data.SectorName)
+```
+
+<a name="Industry.Key"></a>
+### func \(\*Industry\) Key
+
+```go
+func (i *Industry) Key() string
+```
+
+Key returns the industry key.
+
+<a name="Industry.Name"></a>
+### func \(\*Industry\) Name
+
+```go
+func (i *Industry) Name() (string, error)
+```
+
+Name returns the industry name.
+
+Example:
+
+```
+name, err := i.Name()
+fmt.Println(name) // "Semiconductors"
+```
+
+<a name="Industry.Overview"></a>
+### func \(\*Industry\) Overview
+
+```go
+func (i *Industry) Overview() (models.IndustryOverview, error)
+```
+
+Overview returns the industry overview information.
+
+Example:
+
+```
+overview, err := i.Overview()
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("Companies: %d\n", overview.CompaniesCount)
+fmt.Printf("Market Cap: $%.2f\n", overview.MarketCap)
+```
+
+<a name="Industry.ResearchReports"></a>
+### func \(\*Industry\) ResearchReports
+
+```go
+func (i *Industry) ResearchReports() ([]models.ResearchReport, error)
+```
+
+ResearchReports returns research reports for the industry.
+
+Example:
+
+```
+reports, err := i.ResearchReports()
+if err != nil {
+    log.Fatal(err)
+}
+for _, r := range reports {
+    fmt.Printf("%s: %s\n", r.Provider, r.Title)
+}
+```
+
+<a name="Industry.SectorKey"></a>
+### func \(\*Industry\) SectorKey
+
+```go
+func (i *Industry) SectorKey() (string, error)
+```
+
+SectorKey returns the key of the parent sector.
+
+Example:
+
+```
+sectorKey, err := i.SectorKey()
+fmt.Println(sectorKey) // "technology"
+```
+
+<a name="Industry.SectorName"></a>
+### func \(\*Industry\) SectorName
+
+```go
+func (i *Industry) SectorName() (string, error)
+```
+
+SectorName returns the name of the parent sector.
+
+Example:
+
+```
+sectorName, err := i.SectorName()
+fmt.Println(sectorName) // "Technology"
+```
+
+<a name="Industry.Symbol"></a>
+### func \(\*Industry\) Symbol
+
+```go
+func (i *Industry) Symbol() (string, error)
+```
+
+Symbol returns the industry symbol.
+
+<a name="Industry.TopCompanies"></a>
+### func \(\*Industry\) TopCompanies
+
+```go
+func (i *Industry) TopCompanies() ([]models.IndustryTopCompany, error)
+```
+
+TopCompanies returns the top companies in the industry.
+
+Example:
+
+```
+companies, err := i.TopCompanies()
+if err != nil {
+    log.Fatal(err)
+}
+for _, c := range companies {
+    fmt.Printf("%s: %s (Weight: %.2f%%)\n",
+        c.Symbol, c.Name, c.MarketWeight*100)
+}
+```
+
+<a name="Industry.TopGrowthCompanies"></a>
+### func \(\*Industry\) TopGrowthCompanies
+
+```go
+func (i *Industry) TopGrowthCompanies() ([]models.GrowthCompany, error)
+```
+
+TopGrowthCompanies returns the top growth companies in the industry.
+
+Returns companies with highest growth estimates.
+
+Example:
+
+```
+companies, err := i.TopGrowthCompanies()
+if err != nil {
+    log.Fatal(err)
+}
+for _, c := range companies {
+    fmt.Printf("%s: YTD %.2f%%, Growth Estimate: %.2f%%\n",
+        c.Symbol, c.YTDReturn*100, c.GrowthEstimate*100)
+}
+```
+
+<a name="Industry.TopPerformingCompanies"></a>
+### func \(\*Industry\) TopPerformingCompanies
+
+```go
+func (i *Industry) TopPerformingCompanies() ([]models.PerformingCompany, error)
+```
+
+TopPerformingCompanies returns the top performing companies in the industry.
+
+Returns companies with highest year\-to\-date returns.
+
+Example:
+
+```
+companies, err := i.TopPerformingCompanies()
+if err != nil {
+    log.Fatal(err)
+}
+for _, c := range companies {
+    fmt.Printf("%s: YTD %.2f%%, Last: $%.2f, Target: $%.2f\n",
+        c.Symbol, c.YTDReturn*100, c.LastPrice, c.TargetPrice)
+}
+```
+
+<a name="Option"></a>
+## type Option
+
+Option is a function that configures an Industry instance.
+
+```go
+type Option func(*Industry)
+```
+
+<a name="WithClient"></a>
+### func WithClient
+
+```go
+func WithClient(c *client.Client) Option
+```
+
+WithClient sets a custom HTTP client for the Industry instance.
+
 # live
 
 ```go
@@ -1516,6 +2318,694 @@ Example:
 ws.Unsubscribe([]string{"AAPL"})
 ```
 
+# lookup
+
+```go
+import "github.com/wnjoon/go-yfinance/pkg/lookup"
+```
+
+Package lookup provides Yahoo Finance ticker lookup functionality.
+
+### Overview
+
+The lookup package allows searching for financial instruments \(stocks, ETFs, mutual funds, indices, futures, currencies, and cryptocurrencies\) by query string. This is useful for finding ticker symbols when you know the company name or a partial symbol.
+
+Unlike the search package which provides general search across news, lists, and research, lookup is specifically designed for finding ticker symbols with optional filtering by instrument type.
+
+### Basic Usage
+
+```
+l, err := lookup.New("Apple")
+if err != nil {
+    log.Fatal(err)
+}
+defer l.Close()
+
+// Get all matching instruments
+results, err := l.All(10)
+if err != nil {
+    log.Fatal(err)
+}
+for _, doc := range results {
+    fmt.Printf("%s: %s (%s)\n", doc.Symbol, doc.Name, doc.QuoteType)
+}
+```
+
+### Filtering by Type
+
+You can filter results by specific instrument types:
+
+```
+// Get only stocks
+stocks, err := l.Stock(10)
+
+// Get only ETFs
+etfs, err := l.ETF(10)
+
+// Get only mutual funds
+funds, err := l.MutualFund(10)
+
+// Get only indices
+indices, err := l.Index(10)
+
+// Get only futures
+futures, err := l.Future(10)
+
+// Get only currencies
+currencies, err := l.Currency(10)
+
+// Get only cryptocurrencies
+cryptos, err := l.Cryptocurrency(10)
+```
+
+### Pricing Data
+
+By default, lookup results include real\-time pricing data such as:
+
+- RegularMarketPrice: Current market price
+- RegularMarketChange: Price change
+- RegularMarketChangePercent: Percentage change
+- RegularMarketVolume: Trading volume
+- MarketCap: Market capitalization
+- FiftyTwoWeekHigh/Low: 52\-week price range
+
+### Caching
+
+Lookup results are cached per query/type combination. To clear the cache:
+
+```
+l.ClearCache()
+```
+
+### Custom Client
+
+You can provide a custom HTTP client for the Lookup instance:
+
+```
+c, _ := client.New()
+l, _ := lookup.New("AAPL", lookup.WithClient(c))
+```
+
+### Thread Safety
+
+All Lookup methods are safe for concurrent use from multiple goroutines.
+
+### Python Compatibility
+
+This package implements the same functionality as Python yfinance's Lookup class:
+
+```
+Python                      | Go
+----------------------------|---------------------------
+yf.Lookup("AAPL")           | lookup.New("AAPL")
+lookup.get_all(count=10)    | l.All(10)
+lookup.get_stock(count=10)  | l.Stock(10)
+lookup.get_etf(count=10)    | l.ETF(10)
+lookup.get_mutualfund(10)   | l.MutualFund(10)
+lookup.get_index(count=10)  | l.Index(10)
+lookup.get_future(count=10) | l.Future(10)
+lookup.get_currency(10)     | l.Currency(10)
+lookup.get_cryptocurrency() | l.Cryptocurrency(10)
+```
+
+## Index
+
+- [type Lookup](<#Lookup>)
+  - [func New\(query string, opts ...Option\) \(\*Lookup, error\)](<#New>)
+  - [func \(l \*Lookup\) All\(count int\) \(\[\]models.LookupDocument, error\)](<#Lookup.All>)
+  - [func \(l \*Lookup\) ClearCache\(\)](<#Lookup.ClearCache>)
+  - [func \(l \*Lookup\) Close\(\)](<#Lookup.Close>)
+  - [func \(l \*Lookup\) Cryptocurrency\(count int\) \(\[\]models.LookupDocument, error\)](<#Lookup.Cryptocurrency>)
+  - [func \(l \*Lookup\) Currency\(count int\) \(\[\]models.LookupDocument, error\)](<#Lookup.Currency>)
+  - [func \(l \*Lookup\) ETF\(count int\) \(\[\]models.LookupDocument, error\)](<#Lookup.ETF>)
+  - [func \(l \*Lookup\) Future\(count int\) \(\[\]models.LookupDocument, error\)](<#Lookup.Future>)
+  - [func \(l \*Lookup\) Index\(count int\) \(\[\]models.LookupDocument, error\)](<#Lookup.Index>)
+  - [func \(l \*Lookup\) MutualFund\(count int\) \(\[\]models.LookupDocument, error\)](<#Lookup.MutualFund>)
+  - [func \(l \*Lookup\) Query\(\) string](<#Lookup.Query>)
+  - [func \(l \*Lookup\) Stock\(count int\) \(\[\]models.LookupDocument, error\)](<#Lookup.Stock>)
+- [type Option](<#Option>)
+  - [func WithClient\(c \*client.Client\) Option](<#WithClient>)
+
+
+<a name="Lookup"></a>
+## type Lookup
+
+Lookup provides Yahoo Finance ticker lookup functionality.
+
+Lookup allows searching for financial instruments by query string, with optional filtering by instrument type.
+
+```go
+type Lookup struct {
+    // contains filtered or unexported fields
+}
+```
+
+<a name="New"></a>
+### func New
+
+```go
+func New(query string, opts ...Option) (*Lookup, error)
+```
+
+New creates a new Lookup instance for the given query.
+
+The query can be a ticker symbol, company name, or partial match.
+
+Example:
+
+```
+l, err := lookup.New("AAPL")
+if err != nil {
+    log.Fatal(err)
+}
+defer l.Close()
+
+results, err := l.All(10)
+for _, doc := range results {
+    fmt.Printf("%s: %s\n", doc.Symbol, doc.Name)
+}
+```
+
+<a name="Lookup.All"></a>
+### func \(\*Lookup\) All
+
+```go
+func (l *Lookup) All(count int) ([]models.LookupDocument, error)
+```
+
+All returns all types of financial instruments matching the query.
+
+Parameters:
+
+- count: Maximum number of results to return \(default 25 if \<= 0\)
+
+Example:
+
+```
+results, err := l.All(10)
+for _, doc := range results {
+    fmt.Printf("%s: %s (%s)\n", doc.Symbol, doc.Name, doc.QuoteType)
+}
+```
+
+<a name="Lookup.ClearCache"></a>
+### func \(\*Lookup\) ClearCache
+
+```go
+func (l *Lookup) ClearCache()
+```
+
+ClearCache clears the cached lookup results.
+
+<a name="Lookup.Close"></a>
+### func \(\*Lookup\) Close
+
+```go
+func (l *Lookup) Close()
+```
+
+Close releases resources used by the Lookup instance.
+
+<a name="Lookup.Cryptocurrency"></a>
+### func \(\*Lookup\) Cryptocurrency
+
+```go
+func (l *Lookup) Cryptocurrency(count int) ([]models.LookupDocument, error)
+```
+
+Cryptocurrency returns cryptocurrency instruments matching the query.
+
+Parameters:
+
+- count: Maximum number of results to return \(default 25 if \<= 0\)
+
+Example:
+
+```
+cryptos, err := l.Cryptocurrency(10)
+for _, doc := range cryptos {
+    fmt.Printf("%s: %s\n", doc.Symbol, doc.Name)
+}
+```
+
+<a name="Lookup.Currency"></a>
+### func \(\*Lookup\) Currency
+
+```go
+func (l *Lookup) Currency(count int) ([]models.LookupDocument, error)
+```
+
+Currency returns currency instruments matching the query.
+
+Parameters:
+
+- count: Maximum number of results to return \(default 25 if \<= 0\)
+
+Example:
+
+```
+currencies, err := l.Currency(10)
+for _, doc := range currencies {
+    fmt.Printf("%s: %s\n", doc.Symbol, doc.Name)
+}
+```
+
+<a name="Lookup.ETF"></a>
+### func \(\*Lookup\) ETF
+
+```go
+func (l *Lookup) ETF(count int) ([]models.LookupDocument, error)
+```
+
+ETF returns ETF instruments matching the query.
+
+Parameters:
+
+- count: Maximum number of results to return \(default 25 if \<= 0\)
+
+Example:
+
+```
+etfs, err := l.ETF(10)
+for _, doc := range etfs {
+    fmt.Printf("%s: %s\n", doc.Symbol, doc.Name)
+}
+```
+
+<a name="Lookup.Future"></a>
+### func \(\*Lookup\) Future
+
+```go
+func (l *Lookup) Future(count int) ([]models.LookupDocument, error)
+```
+
+Future returns futures instruments matching the query.
+
+Parameters:
+
+- count: Maximum number of results to return \(default 25 if \<= 0\)
+
+Example:
+
+```
+futures, err := l.Future(10)
+for _, doc := range futures {
+    fmt.Printf("%s: %s\n", doc.Symbol, doc.Name)
+}
+```
+
+<a name="Lookup.Index"></a>
+### func \(\*Lookup\) Index
+
+```go
+func (l *Lookup) Index(count int) ([]models.LookupDocument, error)
+```
+
+Index returns index instruments matching the query.
+
+Parameters:
+
+- count: Maximum number of results to return \(default 25 if \<= 0\)
+
+Example:
+
+```
+indices, err := l.Index(10)
+for _, doc := range indices {
+    fmt.Printf("%s: %s\n", doc.Symbol, doc.Name)
+}
+```
+
+<a name="Lookup.MutualFund"></a>
+### func \(\*Lookup\) MutualFund
+
+```go
+func (l *Lookup) MutualFund(count int) ([]models.LookupDocument, error)
+```
+
+MutualFund returns mutual fund instruments matching the query.
+
+Parameters:
+
+- count: Maximum number of results to return \(default 25 if \<= 0\)
+
+Example:
+
+```
+funds, err := l.MutualFund(10)
+for _, doc := range funds {
+    fmt.Printf("%s: %s\n", doc.Symbol, doc.Name)
+}
+```
+
+<a name="Lookup.Query"></a>
+### func \(\*Lookup\) Query
+
+```go
+func (l *Lookup) Query() string
+```
+
+Query returns the search query string.
+
+<a name="Lookup.Stock"></a>
+### func \(\*Lookup\) Stock
+
+```go
+func (l *Lookup) Stock(count int) ([]models.LookupDocument, error)
+```
+
+Stock returns equity/stock instruments matching the query.
+
+Parameters:
+
+- count: Maximum number of results to return \(default 25 if \<= 0\)
+
+Example:
+
+```
+stocks, err := l.Stock(10)
+for _, doc := range stocks {
+    fmt.Printf("%s: %s\n", doc.Symbol, doc.Name)
+}
+```
+
+<a name="Option"></a>
+## type Option
+
+Option is a function that configures a Lookup instance.
+
+```go
+type Option func(*Lookup)
+```
+
+<a name="WithClient"></a>
+### func WithClient
+
+```go
+func WithClient(c *client.Client) Option
+```
+
+WithClient sets a custom HTTP client for the Lookup instance.
+
+# market
+
+```go
+import "github.com/wnjoon/go-yfinance/pkg/market"
+```
+
+Package market provides Yahoo Finance market status and summary functionality.
+
+### Overview
+
+The market package allows retrieving market trading hours, timezone information, and summary data for major market indices. This is useful for determining market state and getting an overview of major indices like S&P 500, Dow Jones, etc.
+
+### Basic Usage
+
+```
+m, err := market.New("us_market")
+if err != nil {
+    log.Fatal(err)
+}
+defer m.Close()
+
+// Get market status (opening/closing times)
+status, err := m.Status()
+if err != nil {
+    log.Fatal(err)
+}
+if status.Open != nil {
+    fmt.Printf("Market opens at: %s\n", status.Open.Format("15:04"))
+}
+fmt.Printf("Timezone: %s\n", status.Timezone.Short)
+```
+
+### Market Summary
+
+Get an overview of major market indices:
+
+```
+summary, err := m.Summary()
+if err != nil {
+    log.Fatal(err)
+}
+for exchange, item := range summary {
+    fmt.Printf("%s: %.2f (%.2f%%)\n",
+        item.ShortName,
+        item.RegularMarketPrice,
+        item.RegularMarketChangePercent)
+}
+```
+
+### Predefined Markets
+
+Common market identifiers are available as constants:
+
+```
+m, _ := market.NewWithPredefined(models.MarketUS)  // US market
+m, _ := market.NewWithPredefined(models.MarketJP)  // Japan market
+m, _ := market.NewWithPredefined(models.MarketGB)  // UK market
+```
+
+Available predefined markets:
+
+- MarketUS: United States
+- MarketGB: United Kingdom
+- MarketDE: Germany
+- MarketFR: France
+- MarketJP: Japan
+- MarketHK: Hong Kong
+- MarketCN: China
+- MarketCA: Canada
+- MarketAU: Australia
+- MarketIN: India
+- MarketKR: Korea
+- MarketBR: Brazil
+
+### Market State
+
+Check if the market is currently open:
+
+```
+isOpen, err := m.IsOpen()
+if isOpen {
+    fmt.Println("Market is currently trading")
+}
+```
+
+### Caching
+
+Market data is cached after the first fetch. To refresh:
+
+```
+m.ClearCache()
+```
+
+### Custom Client
+
+Provide a custom HTTP client:
+
+```
+c, _ := client.New()
+m, _ := market.New("us_market", market.WithClient(c))
+```
+
+### Thread Safety
+
+All Market methods are safe for concurrent use from multiple goroutines.
+
+### Python Compatibility
+
+This package implements the same functionality as Python yfinance's Market class:
+
+```
+Python                  | Go
+------------------------|---------------------------
+yf.Market("us_market")  | market.New("us_market")
+market.status           | m.Status()
+market.summary          | m.Summary()
+```
+
+## Index
+
+- [type Market](<#Market>)
+  - [func New\(market string, opts ...Option\) \(\*Market, error\)](<#New>)
+  - [func NewWithPredefined\(market models.PredefinedMarket, opts ...Option\) \(\*Market, error\)](<#NewWithPredefined>)
+  - [func \(m \*Market\) ClearCache\(\)](<#Market.ClearCache>)
+  - [func \(m \*Market\) Close\(\)](<#Market.Close>)
+  - [func \(m \*Market\) IsOpen\(\) \(bool, error\)](<#Market.IsOpen>)
+  - [func \(m \*Market\) Market\(\) string](<#Market.Market>)
+  - [func \(m \*Market\) Status\(\) \(\*models.MarketStatus, error\)](<#Market.Status>)
+  - [func \(m \*Market\) Summary\(\) \(models.MarketSummary, error\)](<#Market.Summary>)
+- [type Option](<#Option>)
+  - [func WithClient\(c \*client.Client\) Option](<#WithClient>)
+
+
+<a name="Market"></a>
+## type Market
+
+Market provides access to market status and summary information.
+
+Market allows retrieving market opening/closing times, timezone information, and summary data for major market indices.
+
+```go
+type Market struct {
+    // contains filtered or unexported fields
+}
+```
+
+<a name="New"></a>
+### func New
+
+```go
+func New(market string, opts ...Option) (*Market, error)
+```
+
+New creates a new Market instance for the given market identifier.
+
+Common market identifiers:
+
+- "us\_market" \- United States
+- "gb\_market" \- United Kingdom
+- "de\_market" \- Germany
+- "jp\_market" \- Japan
+- "hk\_market" \- Hong Kong
+- "cn\_market" \- China
+
+Example:
+
+```
+m, err := market.New("us_market")
+if err != nil {
+    log.Fatal(err)
+}
+defer m.Close()
+
+status, err := m.Status()
+fmt.Printf("Market opens at: %s\n", status.Open.Format("15:04"))
+```
+
+<a name="NewWithPredefined"></a>
+### func NewWithPredefined
+
+```go
+func NewWithPredefined(market models.PredefinedMarket, opts ...Option) (*Market, error)
+```
+
+NewWithPredefined creates a new Market instance using a predefined market constant.
+
+Example:
+
+```
+m, err := market.NewWithPredefined(models.MarketUS)
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+<a name="Market.ClearCache"></a>
+### func \(\*Market\) ClearCache
+
+```go
+func (m *Market) ClearCache()
+```
+
+ClearCache clears the cached market data. The next call to Status\(\) or Summary\(\) will fetch fresh data.
+
+<a name="Market.Close"></a>
+### func \(\*Market\) Close
+
+```go
+func (m *Market) Close()
+```
+
+Close releases resources used by the Market instance.
+
+<a name="Market.IsOpen"></a>
+### func \(\*Market\) IsOpen
+
+```go
+func (m *Market) IsOpen() (bool, error)
+```
+
+IsOpen returns true if the market is currently open. This is determined by checking if the current time is between open and close times.
+
+<a name="Market.Market"></a>
+### func \(\*Market\) Market
+
+```go
+func (m *Market) Market() string
+```
+
+Market returns the market identifier string.
+
+<a name="Market.Status"></a>
+### func \(\*Market\) Status
+
+```go
+func (m *Market) Status() (*models.MarketStatus, error)
+```
+
+Status returns the current market status including opening/closing times.
+
+Example:
+
+```
+status, err := m.Status()
+if err != nil {
+    log.Fatal(err)
+}
+if status.Open != nil {
+    fmt.Printf("Opens at: %s\n", status.Open.Format("15:04"))
+}
+if status.Timezone != nil {
+    fmt.Printf("Timezone: %s\n", status.Timezone.Short)
+}
+```
+
+<a name="Market.Summary"></a>
+### func \(\*Market\) Summary
+
+```go
+func (m *Market) Summary() (models.MarketSummary, error)
+```
+
+Summary returns the market summary with major indices data.
+
+The result is a map where keys are exchange codes \(e.g., "SNP", "DJI"\) and values contain price and change information.
+
+Example:
+
+```
+summary, err := m.Summary()
+if err != nil {
+    log.Fatal(err)
+}
+for exchange, item := range summary {
+    fmt.Printf("%s (%s): %.2f (%.2f%%)\n",
+        item.ShortName, exchange,
+        item.RegularMarketPrice,
+        item.RegularMarketChangePercent)
+}
+```
+
+<a name="Option"></a>
+## type Option
+
+Option is a function that configures a Market instance.
+
+```go
+type Option func(*Market)
+```
+
+<a name="WithClient"></a>
+### func WithClient
+
+```go
+func WithClient(c *client.Client) Option
+```
+
+WithClient sets a custom HTTP client for the Market instance.
+
 # models
 
 ```go
@@ -1648,6 +3138,11 @@ Package models provides data structures for Yahoo Finance API responses.
   - [func \(c \*Calendar\) HasDividend\(\) bool](<#Calendar.HasDividend>)
   - [func \(c \*Calendar\) HasEarnings\(\) bool](<#Calendar.HasEarnings>)
   - [func \(c \*Calendar\) NextEarningsDate\(\) \*time.Time](<#Calendar.NextEarningsDate>)
+- [type CalendarOptions](<#CalendarOptions>)
+  - [func DefaultCalendarOptions\(\) CalendarOptions](<#DefaultCalendarOptions>)
+- [type CalendarResponse](<#CalendarResponse>)
+- [type CalendarSplitEvent](<#CalendarSplitEvent>)
+- [type CalendarType](<#CalendarType>)
 - [type CapitalGainEvent](<#CapitalGainEvent>)
 - [type ChartAdjClose](<#ChartAdjClose>)
 - [type ChartError](<#ChartError>)
@@ -1664,8 +3159,10 @@ Package models provides data structures for Yahoo Finance API responses.
 - [type EPSRevision](<#EPSRevision>)
 - [type EPSTrend](<#EPSTrend>)
 - [type EarningsEstimate](<#EarningsEstimate>)
+- [type EarningsEvent](<#EarningsEvent>)
 - [type EarningsHistory](<#EarningsHistory>)
 - [type EarningsHistoryItem](<#EarningsHistoryItem>)
+- [type EconomicEvent](<#EconomicEvent>)
 - [type FastInfo](<#FastInfo>)
 - [type FinancialItem](<#FinancialItem>)
 - [type FinancialStatement](<#FinancialStatement>)
@@ -1675,20 +3172,38 @@ Package models provides data structures for Yahoo Finance API responses.
   - [func \(fs \*FinancialStatement\) GetLatest\(field string\) \(float64, bool\)](<#FinancialStatement.GetLatest>)
 - [type Financials](<#Financials>)
 - [type Frequency](<#Frequency>)
+- [type GrowthCompany](<#GrowthCompany>)
 - [type GrowthEstimate](<#GrowthEstimate>)
 - [type History](<#History>)
 - [type HistoryParams](<#HistoryParams>)
   - [func DefaultHistoryParams\(\) HistoryParams](<#DefaultHistoryParams>)
 - [type Holder](<#Holder>)
 - [type HoldersData](<#HoldersData>)
+- [type IPOEvent](<#IPOEvent>)
+- [type IndustryData](<#IndustryData>)
+- [type IndustryOverview](<#IndustryOverview>)
+- [type IndustryResponse](<#IndustryResponse>)
+- [type IndustryTopCompany](<#IndustryTopCompany>)
 - [type Info](<#Info>)
 - [type InsiderHolder](<#InsiderHolder>)
   - [func \(h \*InsiderHolder\) TotalShares\(\) int64](<#InsiderHolder.TotalShares>)
 - [type InsiderPurchases](<#InsiderPurchases>)
 - [type InsiderTransaction](<#InsiderTransaction>)
+- [type LookupDocument](<#LookupDocument>)
+- [type LookupParams](<#LookupParams>)
+  - [func DefaultLookupParams\(\) LookupParams](<#DefaultLookupParams>)
+- [type LookupResponse](<#LookupResponse>)
+- [type LookupResult](<#LookupResult>)
+- [type LookupType](<#LookupType>)
 - [type MajorHolders](<#MajorHolders>)
 - [type MarketState](<#MarketState>)
   - [func \(m MarketState\) String\(\) string](<#MarketState.String>)
+- [type MarketStatus](<#MarketStatus>)
+- [type MarketSummary](<#MarketSummary>)
+- [type MarketSummaryItem](<#MarketSummaryItem>)
+- [type MarketSummaryResponse](<#MarketSummaryResponse>)
+- [type MarketTimeResponse](<#MarketTimeResponse>)
+- [type MarketTimezone](<#MarketTimezone>)
 - [type MultiTickerResult](<#MultiTickerResult>)
   - [func \(r \*MultiTickerResult\) ErrorCount\(\) int](<#MultiTickerResult.ErrorCount>)
   - [func \(r \*MultiTickerResult\) Get\(symbol string\) \[\]Bar](<#MultiTickerResult.Get>)
@@ -1709,8 +3224,14 @@ Package models provides data structures for Yahoo Finance API responses.
 - [type OptionChainResponse](<#OptionChainResponse>)
 - [type OptionQuote](<#OptionQuote>)
 - [type OptionsData](<#OptionsData>)
+- [type PerformingCompany](<#PerformingCompany>)
+- [type PredefinedIndustry](<#PredefinedIndustry>)
+  - [func AllIndustries\(\) \[\]PredefinedIndustry](<#AllIndustries>)
+- [type PredefinedMarket](<#PredefinedMarket>)
 - [type PredefinedScreener](<#PredefinedScreener>)
   - [func AllPredefinedScreeners\(\) \[\]PredefinedScreener](<#AllPredefinedScreeners>)
+- [type PredefinedSector](<#PredefinedSector>)
+  - [func AllSectors\(\) \[\]PredefinedSector](<#AllSectors>)
 - [type PriceTarget](<#PriceTarget>)
 - [type PricingData](<#PricingData>)
   - [func \(p \*PricingData\) ExpireTime\(\) time.Time](<#PricingData.ExpireTime>)
@@ -1729,6 +3250,7 @@ Package models provides data structures for Yahoo Finance API responses.
 - [type Recommendation](<#Recommendation>)
   - [func \(r \*Recommendation\) Total\(\) int](<#Recommendation.Total>)
 - [type RecommendationTrend](<#RecommendationTrend>)
+- [type ResearchReport](<#ResearchReport>)
 - [type RevenueEstimate](<#RevenueEstimate>)
 - [type ScreenerParams](<#ScreenerParams>)
   - [func DefaultScreenerParams\(\) ScreenerParams](<#DefaultScreenerParams>)
@@ -1747,6 +3269,11 @@ Package models provides data structures for Yahoo Finance API responses.
 - [type SearchResponse](<#SearchResponse>)
 - [type SearchResult](<#SearchResult>)
 - [type SearchThumbnail](<#SearchThumbnail>)
+- [type SectorData](<#SectorData>)
+- [type SectorIndustry](<#SectorIndustry>)
+- [type SectorOverview](<#SectorOverview>)
+- [type SectorResponse](<#SectorResponse>)
+- [type SectorTopCompany](<#SectorTopCompany>)
 - [type Split](<#Split>)
 - [type SplitEvent](<#SplitEvent>)
 - [type ThumbnailResolution](<#ThumbnailResolution>)
@@ -1921,6 +3448,118 @@ func (c *Calendar) NextEarningsDate() *time.Time
 ```
 
 NextEarningsDate returns the earliest earnings date, or nil if none.
+
+<a name="CalendarOptions"></a>
+## type CalendarOptions
+
+CalendarOptions contains options for calendar queries.
+
+```go
+type CalendarOptions struct {
+    // Start is the start date for the calendar range.
+    Start time.Time
+
+    // End is the end date for the calendar range.
+    End time.Time
+
+    // Limit is the maximum number of results (max 100).
+    Limit int
+
+    // Offset is the pagination offset.
+    Offset int
+}
+```
+
+<a name="DefaultCalendarOptions"></a>
+### func DefaultCalendarOptions
+
+```go
+func DefaultCalendarOptions() CalendarOptions
+```
+
+DefaultCalendarOptions returns default calendar options. Default range is today to 7 days from now, limit 12.
+
+<a name="CalendarResponse"></a>
+## type CalendarResponse
+
+CalendarResponse represents the raw API response for calendar data.
+
+```go
+type CalendarResponse struct {
+    Finance struct {
+        Result []struct {
+            Documents []struct {
+                Columns []struct {
+                    Label string `json:"label"`
+                    Type  string `json:"type"`
+                }   `json:"columns"`
+                Rows [][]interface{} `json:"rows"`
+            } `json:"documents"`
+        }   `json:"result"`
+        Error *struct {
+            Code        string `json:"code"`
+            Description string `json:"description"`
+        }   `json:"error,omitempty"`
+    } `json:"finance"`
+}
+```
+
+<a name="CalendarSplitEvent"></a>
+## type CalendarSplitEvent
+
+CalendarSplitEvent represents a stock split calendar event.
+
+```go
+type CalendarSplitEvent struct {
+    // Symbol is the ticker symbol.
+    Symbol string `json:"symbol"`
+
+    // CompanyName is the company's short name.
+    CompanyName string `json:"company_name"`
+
+    // PayableDate is the split payable date.
+    PayableDate *time.Time `json:"payable_date,omitempty"`
+
+    // Optionable indicates if the stock is optionable.
+    Optionable bool `json:"optionable"`
+
+    // OldShareWorth is the old share worth.
+    OldShareWorth float64 `json:"old_share_worth,omitempty"`
+
+    // NewShareWorth is the new share worth after split.
+    NewShareWorth float64 `json:"new_share_worth,omitempty"`
+
+    // Ratio represents the split ratio (e.g., "2:1").
+    Ratio string `json:"ratio,omitempty"`
+}
+```
+
+<a name="CalendarType"></a>
+## type CalendarType
+
+CalendarType represents the type of calendar.
+
+```go
+type CalendarType string
+```
+
+<a name="CalendarEarnings"></a>
+
+```go
+const (
+    // CalendarEarnings represents the S&P earnings calendar.
+    CalendarEarnings CalendarType = "sp_earnings"
+
+    // CalendarIPO represents the IPO info calendar.
+    CalendarIPO CalendarType = "ipo_info"
+
+    // CalendarEconomicEvents represents the economic events calendar.
+    CalendarEconomicEvents CalendarType = "economic_event"
+
+    // CalendarSplits represents the stock splits calendar.
+    CalendarSplits CalendarType = "splits"
+)
+```
 
 <a name="CapitalGainEvent"></a>
 ## type CapitalGainEvent
@@ -2185,6 +3824,42 @@ type EarningsEstimate struct {
 }
 ```
 
+<a name="EarningsEvent"></a>
+## type EarningsEvent
+
+EarningsEvent represents an earnings calendar event.
+
+```go
+type EarningsEvent struct {
+    // Symbol is the ticker symbol.
+    Symbol string `json:"symbol"`
+
+    // CompanyName is the company's short name.
+    CompanyName string `json:"company_name"`
+
+    // MarketCap is the intraday market capitalization.
+    MarketCap float64 `json:"market_cap,omitempty"`
+
+    // EventName is the name of the earnings event.
+    EventName string `json:"event_name,omitempty"`
+
+    // EventTime is the event start datetime.
+    EventTime *time.Time `json:"event_time,omitempty"`
+
+    // Timing indicates if the event is before/after market (BMO/AMC).
+    Timing string `json:"timing,omitempty"`
+
+    // EPSEstimate is the estimated earnings per share.
+    EPSEstimate float64 `json:"eps_estimate,omitempty"`
+
+    // EPSActual is the actual reported earnings per share.
+    EPSActual float64 `json:"eps_actual,omitempty"`
+
+    // SurprisePercent is the earnings surprise percentage.
+    SurprisePercent float64 `json:"surprise_percent,omitempty"`
+}
+```
+
 <a name="EarningsHistory"></a>
 ## type EarningsHistory
 
@@ -2209,6 +3884,39 @@ type EarningsHistoryItem struct {
     EPSEstimate     float64   `json:"epsEstimate"`
     EPSDifference   float64   `json:"epsDifference"`
     SurprisePercent float64   `json:"surprisePercent"` // as decimal
+}
+```
+
+<a name="EconomicEvent"></a>
+## type EconomicEvent
+
+EconomicEvent represents an economic calendar event.
+
+```go
+type EconomicEvent struct {
+    // Event is the economic release name.
+    Event string `json:"event"`
+
+    // Region is the country code.
+    Region string `json:"region,omitempty"`
+
+    // EventTime is the event start datetime.
+    EventTime *time.Time `json:"event_time,omitempty"`
+
+    // Period is the reporting period.
+    Period string `json:"period,omitempty"`
+
+    // Actual is the actual released value.
+    Actual float64 `json:"actual,omitempty"`
+
+    // Expected is the consensus estimate.
+    Expected float64 `json:"expected,omitempty"`
+
+    // Last is the prior release actual value.
+    Last float64 `json:"last,omitempty"`
+
+    // Revised is the revised value from original report.
+    Revised float64 `json:"revised,omitempty"`
 }
 ```
 
@@ -2352,6 +4060,27 @@ const (
 )
 ```
 
+<a name="GrowthCompany"></a>
+## type GrowthCompany
+
+GrowthCompany represents a top growth company in the industry.
+
+```go
+type GrowthCompany struct {
+    // Symbol is the stock ticker symbol.
+    Symbol string `json:"symbol"`
+
+    // Name is the company name.
+    Name string `json:"name"`
+
+    // YTDReturn is the year-to-date return.
+    YTDReturn float64 `json:"ytd_return,omitempty"`
+
+    // GrowthEstimate is the estimated growth rate.
+    GrowthEstimate float64 `json:"growth_estimate,omitempty"`
+}
+```
+
 <a name="GrowthEstimate"></a>
 ## type GrowthEstimate
 
@@ -2478,6 +4207,176 @@ type HoldersData struct {
 
     // InsiderPurchases contains insider purchase activity summary.
     InsiderPurchases *InsiderPurchases `json:"insiderPurchases,omitempty"`
+}
+```
+
+<a name="IPOEvent"></a>
+## type IPOEvent
+
+IPOEvent represents an IPO calendar event.
+
+```go
+type IPOEvent struct {
+    // Symbol is the ticker symbol.
+    Symbol string `json:"symbol"`
+
+    // CompanyName is the company's short name.
+    CompanyName string `json:"company_name"`
+
+    // Exchange is the exchange short name.
+    Exchange string `json:"exchange,omitempty"`
+
+    // FilingDate is the SEC filing date.
+    FilingDate *time.Time `json:"filing_date,omitempty"`
+
+    // Date is the IPO date.
+    Date *time.Time `json:"date,omitempty"`
+
+    // AmendedDate is the amended filing date.
+    AmendedDate *time.Time `json:"amended_date,omitempty"`
+
+    // PriceFrom is the lower end of the price range.
+    PriceFrom float64 `json:"price_from,omitempty"`
+
+    // PriceTo is the upper end of the price range.
+    PriceTo float64 `json:"price_to,omitempty"`
+
+    // OfferPrice is the final offer price.
+    OfferPrice float64 `json:"offer_price,omitempty"`
+
+    // Currency is the currency name.
+    Currency string `json:"currency,omitempty"`
+
+    // Shares is the number of shares offered.
+    Shares int64 `json:"shares,omitempty"`
+
+    // DealType is the type of deal.
+    DealType string `json:"deal_type,omitempty"`
+}
+```
+
+<a name="IndustryData"></a>
+## type IndustryData
+
+IndustryData contains all data for an industry.
+
+This includes overview information, top companies, sector info, performing companies, and growth companies.
+
+Example:
+
+```
+i, err := industry.New("semiconductors")
+if err != nil {
+    log.Fatal(err)
+}
+data, err := i.Data()
+fmt.Printf("Industry: %s in Sector: %s\n", data.Name, data.SectorName)
+```
+
+```go
+type IndustryData struct {
+    // Key is the industry identifier.
+    Key string `json:"key"`
+
+    // Name is the display name of the industry.
+    Name string `json:"name"`
+
+    // Symbol is the associated symbol (e.g., index symbol).
+    Symbol string `json:"symbol,omitempty"`
+
+    // SectorKey is the key of the parent sector.
+    SectorKey string `json:"sector_key,omitempty"`
+
+    // SectorName is the name of the parent sector.
+    SectorName string `json:"sector_name,omitempty"`
+
+    // Overview contains industry overview information.
+    Overview IndustryOverview `json:"overview"`
+
+    // TopCompanies lists the top companies in the industry.
+    TopCompanies []IndustryTopCompany `json:"top_companies,omitempty"`
+
+    // TopPerformingCompanies lists the top performing companies.
+    TopPerformingCompanies []PerformingCompany `json:"top_performing_companies,omitempty"`
+
+    // TopGrowthCompanies lists the top growth companies.
+    TopGrowthCompanies []GrowthCompany `json:"top_growth_companies,omitempty"`
+
+    // ResearchReports contains research reports for the industry.
+    ResearchReports []ResearchReport `json:"research_reports,omitempty"`
+}
+```
+
+<a name="IndustryOverview"></a>
+## type IndustryOverview
+
+IndustryOverview contains overview information for an industry.
+
+```go
+type IndustryOverview struct {
+    // CompaniesCount is the number of companies in the industry.
+    CompaniesCount int `json:"companies_count,omitempty"`
+
+    // MarketCap is the total market capitalization of the industry.
+    MarketCap float64 `json:"market_cap,omitempty"`
+
+    // MessageBoardID is the Yahoo Finance message board identifier.
+    MessageBoardID string `json:"message_board_id,omitempty"`
+
+    // Description is a text description of the industry.
+    Description string `json:"description,omitempty"`
+
+    // MarketWeight is the industry's weight in the market.
+    MarketWeight float64 `json:"market_weight,omitempty"`
+
+    // EmployeeCount is the total number of employees in the industry.
+    EmployeeCount int64 `json:"employee_count,omitempty"`
+}
+```
+
+<a name="IndustryResponse"></a>
+## type IndustryResponse
+
+IndustryResponse represents the raw API response for industry data.
+
+```go
+type IndustryResponse struct {
+    Data struct {
+        Name                   string                   `json:"name"`
+        Symbol                 string                   `json:"symbol"`
+        SectorKey              string                   `json:"sectorKey"`
+        SectorName             string                   `json:"sectorName"`
+        Overview               map[string]interface{}   `json:"overview"`
+        TopCompanies           []map[string]interface{} `json:"topCompanies"`
+        TopPerformingCompanies []map[string]interface{} `json:"topPerformingCompanies"`
+        TopGrowthCompanies     []map[string]interface{} `json:"topGrowthCompanies"`
+        ResearchReports        []map[string]interface{} `json:"researchReports"`
+    }   `json:"data"`
+    Error *struct {
+        Code        string `json:"code"`
+        Description string `json:"description"`
+    }   `json:"error,omitempty"`
+}
+```
+
+<a name="IndustryTopCompany"></a>
+## type IndustryTopCompany
+
+IndustryTopCompany represents a top company within an industry.
+
+```go
+type IndustryTopCompany struct {
+    // Symbol is the stock ticker symbol.
+    Symbol string `json:"symbol"`
+
+    // Name is the company name.
+    Name string `json:"name"`
+
+    // Rating is the analyst rating.
+    Rating string `json:"rating,omitempty"`
+
+    // MarketWeight is the company's weight within the industry.
+    MarketWeight float64 `json:"market_weight,omitempty"`
 }
 ```
 
@@ -2751,6 +4650,214 @@ type InsiderTransaction struct {
 }
 ```
 
+<a name="LookupDocument"></a>
+## type LookupDocument
+
+LookupDocument represents a single financial instrument from lookup results.
+
+This structure contains detailed information about a matching ticker symbol, including pricing data if requested.
+
+```go
+type LookupDocument struct {
+    // Symbol is the ticker symbol.
+    Symbol string `json:"symbol"`
+
+    // Name is the company/instrument name.
+    Name string `json:"name"`
+
+    // ShortName is the short name (alternative to Name).
+    ShortName string `json:"shortName,omitempty"`
+
+    // Exchange is the exchange where the instrument is traded.
+    Exchange string `json:"exchange"`
+
+    // ExchangeDisplay is the display name of the exchange.
+    ExchangeDisplay string `json:"exchDisp,omitempty"`
+
+    // QuoteType is the type of instrument (EQUITY, ETF, MUTUALFUND, etc.).
+    QuoteType string `json:"quoteType"`
+
+    // TypeDisplay is the display name of the instrument type.
+    TypeDisplay string `json:"typeDisp,omitempty"`
+
+    // Industry is the industry classification.
+    Industry string `json:"industry,omitempty"`
+
+    // Sector is the sector classification.
+    Sector string `json:"sector,omitempty"`
+
+    // Score is the relevance score of this result.
+    Score float64 `json:"score,omitempty"`
+
+    // RegularMarketPrice is the current market price.
+    RegularMarketPrice float64 `json:"regularMarketPrice,omitempty"`
+
+    // RegularMarketChange is the price change.
+    RegularMarketChange float64 `json:"regularMarketChange,omitempty"`
+
+    // RegularMarketChangePercent is the percentage price change.
+    RegularMarketChangePercent float64 `json:"regularMarketChangePercent,omitempty"`
+
+    // RegularMarketPreviousClose is the previous closing price.
+    RegularMarketPreviousClose float64 `json:"regularMarketPreviousClose,omitempty"`
+
+    // RegularMarketOpen is the opening price.
+    RegularMarketOpen float64 `json:"regularMarketOpen,omitempty"`
+
+    // RegularMarketDayHigh is the day's high price.
+    RegularMarketDayHigh float64 `json:"regularMarketDayHigh,omitempty"`
+
+    // RegularMarketDayLow is the day's low price.
+    RegularMarketDayLow float64 `json:"regularMarketDayLow,omitempty"`
+
+    // RegularMarketVolume is the trading volume.
+    RegularMarketVolume int64 `json:"regularMarketVolume,omitempty"`
+
+    // MarketCap is the market capitalization.
+    MarketCap int64 `json:"marketCap,omitempty"`
+
+    // FiftyTwoWeekHigh is the 52-week high price.
+    FiftyTwoWeekHigh float64 `json:"fiftyTwoWeekHigh,omitempty"`
+
+    // FiftyTwoWeekLow is the 52-week low price.
+    FiftyTwoWeekLow float64 `json:"fiftyTwoWeekLow,omitempty"`
+
+    // Currency is the trading currency.
+    Currency string `json:"currency,omitempty"`
+
+    // MarketState is the current market state (PRE, REGULAR, POST, CLOSED).
+    MarketState string `json:"marketState,omitempty"`
+}
+```
+
+<a name="LookupParams"></a>
+## type LookupParams
+
+LookupParams represents parameters for the Lookup function.
+
+```go
+type LookupParams struct {
+    // Type is the instrument type filter (default "all").
+    Type LookupType
+
+    // Count is the maximum number of results to return (default 25).
+    Count int
+
+    // Start is the offset for pagination (default 0).
+    Start int
+
+    // FetchPricingData includes real-time pricing data in results (default true).
+    FetchPricingData bool
+}
+```
+
+<a name="DefaultLookupParams"></a>
+### func DefaultLookupParams
+
+```go
+func DefaultLookupParams() LookupParams
+```
+
+DefaultLookupParams returns default lookup parameters.
+
+Default values:
+
+- Type: LookupTypeAll
+- Count: 25
+- Start: 0
+- FetchPricingData: true
+
+<a name="LookupResponse"></a>
+## type LookupResponse
+
+LookupResponse represents the raw API response from Yahoo Finance lookup.
+
+```go
+type LookupResponse struct {
+    Finance struct {
+        Result []struct {
+            Documents []map[string]interface{} `json:"documents"`
+            Count     int                      `json:"count,omitempty"`
+            Start     int                      `json:"start,omitempty"`
+            Total     int                      `json:"total,omitempty"`
+        }   `json:"result"`
+        Error *struct {
+            Code        string `json:"code"`
+            Description string `json:"description"`
+        }   `json:"error,omitempty"`
+    } `json:"finance"`
+}
+```
+
+<a name="LookupResult"></a>
+## type LookupResult
+
+LookupResult represents the result of a lookup query.
+
+This contains a list of matching financial instruments based on the search query.
+
+Example:
+
+```
+l, err := lookup.New("AAPL")
+if err != nil {
+    log.Fatal(err)
+}
+results, err := l.All(10)
+for _, doc := range results {
+    fmt.Printf("%s: %s (%s)\n", doc.Symbol, doc.Name, doc.Exchange)
+}
+```
+
+```go
+type LookupResult struct {
+    // Documents contains the list of matching financial instruments.
+    Documents []LookupDocument `json:"documents"`
+
+    // Count is the number of results returned.
+    Count int `json:"count"`
+}
+```
+
+<a name="LookupType"></a>
+## type LookupType
+
+LookupType represents the type of financial instrument for lookup queries.
+
+```go
+type LookupType string
+```
+
+<a name="LookupTypeAll"></a>
+
+```go
+const (
+    // LookupTypeAll returns all types of financial instruments.
+    LookupTypeAll LookupType = "all"
+
+    // LookupTypeEquity returns stock/equity instruments.
+    LookupTypeEquity LookupType = "equity"
+
+    // LookupTypeMutualFund returns mutual fund instruments.
+    LookupTypeMutualFund LookupType = "mutualfund"
+
+    // LookupTypeETF returns ETF instruments.
+    LookupTypeETF LookupType = "etf"
+
+    // LookupTypeIndex returns index instruments.
+    LookupTypeIndex LookupType = "index"
+
+    // LookupTypeFuture returns future instruments.
+    LookupTypeFuture LookupType = "future"
+
+    // LookupTypeCurrency returns currency instruments.
+    LookupTypeCurrency LookupType = "currency"
+
+    // LookupTypeCryptocurrency returns cryptocurrency instruments.
+    LookupTypeCryptocurrency LookupType = "cryptocurrency"
+)
+```
+
 <a name="MajorHolders"></a>
 ## type MajorHolders
 
@@ -2817,6 +4924,185 @@ func (m MarketState) String() string
 ```
 
 String returns the string representation of MarketState.
+
+<a name="MarketStatus"></a>
+## type MarketStatus
+
+MarketStatus represents the status and trading hours of a market.
+
+This includes opening/closing times, timezone information, and current market state.
+
+Example:
+
+```
+m, err := market.New("us_market")
+if err != nil {
+    log.Fatal(err)
+}
+status, err := m.Status()
+fmt.Printf("Market opens at: %s\n", status.Open.Format("15:04"))
+```
+
+```go
+type MarketStatus struct {
+    // ID is the market identifier (e.g., "us_market").
+    ID  string `json:"id,omitempty"`
+
+    // Open is the market opening time.
+    Open *time.Time `json:"open,omitempty"`
+
+    // Close is the market closing time.
+    Close *time.Time `json:"close,omitempty"`
+
+    // Timezone contains timezone information.
+    Timezone *MarketTimezone `json:"timezone,omitempty"`
+
+    // State is the current market state (e.g., "REGULAR", "CLOSED", "PRE", "POST").
+    State string `json:"state,omitempty"`
+
+    // OpenStr is the raw open time string from API.
+    OpenStr string `json:"-"`
+
+    // CloseStr is the raw close time string from API.
+    CloseStr string `json:"-"`
+}
+```
+
+<a name="MarketSummary"></a>
+## type MarketSummary
+
+MarketSummary represents the summary of all market indices.
+
+This provides an overview of major market indices like S&P 500, Dow Jones, NASDAQ, etc.
+
+Example:
+
+```
+m, err := market.New("us_market")
+if err != nil {
+    log.Fatal(err)
+}
+summary, err := m.Summary()
+for exchange, item := range summary {
+    fmt.Printf("%s: %.2f (%.2f%%)\n",
+        item.ShortName, item.RegularMarketPrice, item.RegularMarketChangePercent)
+}
+```
+
+```go
+type MarketSummary map[string]MarketSummaryItem
+```
+
+<a name="MarketSummaryItem"></a>
+## type MarketSummaryItem
+
+MarketSummaryItem represents a single market index or asset in the summary.
+
+Each item represents an index like S&P 500, Dow Jones, etc.
+
+```go
+type MarketSummaryItem struct {
+    // Exchange is the exchange code (e.g., "SNP", "DJI").
+    Exchange string `json:"exchange"`
+
+    // Symbol is the ticker symbol.
+    Symbol string `json:"symbol"`
+
+    // ShortName is the short name of the index.
+    ShortName string `json:"shortName"`
+
+    // FullExchangeName is the full name of the exchange.
+    FullExchangeName string `json:"fullExchangeName,omitempty"`
+
+    // MarketState is the current market state.
+    MarketState string `json:"marketState,omitempty"`
+
+    // RegularMarketPrice is the current price.
+    RegularMarketPrice float64 `json:"regularMarketPrice"`
+
+    // RegularMarketChange is the price change.
+    RegularMarketChange float64 `json:"regularMarketChange"`
+
+    // RegularMarketChangePercent is the percentage change.
+    RegularMarketChangePercent float64 `json:"regularMarketChangePercent"`
+
+    // RegularMarketPreviousClose is the previous closing price.
+    RegularMarketPreviousClose float64 `json:"regularMarketPreviousClose,omitempty"`
+
+    // RegularMarketTime is the time of the last regular market trade.
+    RegularMarketTime int64 `json:"regularMarketTime,omitempty"`
+
+    // QuoteType is the type of quote (e.g., "INDEX", "EQUITY").
+    QuoteType string `json:"quoteType,omitempty"`
+
+    // SourceInterval is the data update interval in seconds.
+    SourceInterval int `json:"sourceInterval,omitempty"`
+
+    // ExchangeDataDelayedBy is the delay in seconds.
+    ExchangeDataDelayedBy int `json:"exchangeDataDelayedBy,omitempty"`
+}
+```
+
+<a name="MarketSummaryResponse"></a>
+## type MarketSummaryResponse
+
+MarketSummaryResponse represents the raw API response for market summary.
+
+```go
+type MarketSummaryResponse struct {
+    MarketSummaryResponse struct {
+        Result []map[string]interface{} `json:"result"`
+        Error  *struct {
+            Code        string `json:"code"`
+            Description string `json:"description"`
+        }   `json:"error,omitempty"`
+    } `json:"marketSummaryResponse"`
+}
+```
+
+<a name="MarketTimeResponse"></a>
+## type MarketTimeResponse
+
+MarketTimeResponse represents the raw API response for market time.
+
+```go
+type MarketTimeResponse struct {
+    Finance struct {
+        MarketTimes []struct {
+            ID         string `json:"id"`
+            MarketTime []struct {
+                ID       string                   `json:"id"`
+                Open     string                   `json:"open"`
+                Close    string                   `json:"close"`
+                Timezone []map[string]interface{} `json:"timezone"`
+                Time     string                   `json:"time,omitempty"`
+            }   `json:"marketTime"`
+        }   `json:"marketTimes"`
+        Error *struct {
+            Code        string `json:"code"`
+            Description string `json:"description"`
+        }   `json:"error,omitempty"`
+    } `json:"finance"`
+}
+```
+
+<a name="MarketTimezone"></a>
+## type MarketTimezone
+
+MarketTimezone represents timezone information for a market.
+
+```go
+type MarketTimezone struct {
+    // GMTOffset is the GMT offset in milliseconds.
+    GMTOffset int64 `json:"gmtoffset,omitempty"`
+
+    // Short is the short timezone name (e.g., "EST", "PST").
+    Short string `json:"short,omitempty"`
+
+    // Long is the full timezone name (e.g., "Eastern Standard Time").
+    Long string `json:"long,omitempty"`
+}
+```
 
 <a name="MultiTickerResult"></a>
 ## type MultiTickerResult
@@ -3136,6 +5422,234 @@ type OptionsData struct {
 }
 ```
 
+<a name="PerformingCompany"></a>
+## type PerformingCompany
+
+PerformingCompany represents a top performing company in the industry.
+
+```go
+type PerformingCompany struct {
+    // Symbol is the stock ticker symbol.
+    Symbol string `json:"symbol"`
+
+    // Name is the company name.
+    Name string `json:"name"`
+
+    // YTDReturn is the year-to-date return.
+    YTDReturn float64 `json:"ytd_return,omitempty"`
+
+    // LastPrice is the last traded price.
+    LastPrice float64 `json:"last_price,omitempty"`
+
+    // TargetPrice is the analyst target price.
+    TargetPrice float64 `json:"target_price,omitempty"`
+}
+```
+
+<a name="PredefinedIndustry"></a>
+## type PredefinedIndustry
+
+PredefinedIndustry represents commonly used industry identifiers.
+
+```go
+type PredefinedIndustry string
+```
+
+<a name="IndustrySemiconductors"></a>Technology Sector Industries
+
+```go
+const (
+    // IndustrySemiconductors represents the Semiconductors industry.
+    IndustrySemiconductors PredefinedIndustry = "semiconductors"
+
+    // IndustrySoftwareInfrastructure represents the Software - Infrastructure industry.
+    IndustrySoftwareInfrastructure PredefinedIndustry = "software-infrastructure"
+
+    // IndustrySoftwareApplication represents the Software - Application industry.
+    IndustrySoftwareApplication PredefinedIndustry = "software-application"
+
+    // IndustryConsumerElectronics represents the Consumer Electronics industry.
+    IndustryConsumerElectronics PredefinedIndustry = "consumer-electronics"
+
+    // IndustryComputerHardware represents the Computer Hardware industry.
+    IndustryComputerHardware PredefinedIndustry = "computer-hardware"
+
+    // IndustrySemiconductorEquipment represents the Semiconductor Equipment & Materials industry.
+    IndustrySemiconductorEquipment PredefinedIndustry = "semiconductor-equipment-materials"
+
+    // IndustryITServices represents the Information Technology Services industry.
+    IndustryITServices PredefinedIndustry = "information-technology-services"
+
+    // IndustryCommunicationEquipment represents the Communication Equipment industry.
+    IndustryCommunicationEquipment PredefinedIndustry = "communication-equipment"
+
+    // IndustryElectronicComponents represents the Electronic Components industry.
+    IndustryElectronicComponents PredefinedIndustry = "electronic-components"
+
+    // IndustrySolar represents the Solar industry.
+    IndustrySolar PredefinedIndustry = "solar"
+)
+```
+
+<a name="IndustryBiotechnology"></a>Healthcare Sector Industries
+
+```go
+const (
+    // IndustryBiotechnology represents the Biotechnology industry.
+    IndustryBiotechnology PredefinedIndustry = "biotechnology"
+
+    // IndustryDrugManufacturersGeneral represents the Drug Manufacturers - General industry.
+    IndustryDrugManufacturersGeneral PredefinedIndustry = "drug-manufacturers-general"
+
+    // IndustryMedicalDevices represents the Medical Devices industry.
+    IndustryMedicalDevices PredefinedIndustry = "medical-devices"
+
+    // IndustryHealthcarePlans represents the Healthcare Plans industry.
+    IndustryHealthcarePlans PredefinedIndustry = "healthcare-plans"
+
+    // IndustryDiagnosticsResearch represents the Diagnostics & Research industry.
+    IndustryDiagnosticsResearch PredefinedIndustry = "diagnostics-research"
+)
+```
+
+<a name="IndustryBanksDiversified"></a>Financial Services Sector Industries
+
+```go
+const (
+    // IndustryBanksDiversified represents the Banks - Diversified industry.
+    IndustryBanksDiversified PredefinedIndustry = "banks-diversified"
+
+    // IndustryBanksRegional represents the Banks - Regional industry.
+    IndustryBanksRegional PredefinedIndustry = "banks-regional"
+
+    // IndustryAssetManagement represents the Asset Management industry.
+    IndustryAssetManagement PredefinedIndustry = "asset-management"
+
+    // IndustryCapitalMarkets represents the Capital Markets industry.
+    IndustryCapitalMarkets PredefinedIndustry = "capital-markets"
+
+    // IndustryInsuranceDiversified represents the Insurance - Diversified industry.
+    IndustryInsuranceDiversified PredefinedIndustry = "insurance-diversified"
+
+    // IndustryCreditServices represents the Credit Services industry.
+    IndustryCreditServices PredefinedIndustry = "credit-services"
+)
+```
+
+<a name="IndustryOilGasIntegrated"></a>Energy Sector Industries
+
+```go
+const (
+    // IndustryOilGasIntegrated represents the Oil & Gas Integrated industry.
+    IndustryOilGasIntegrated PredefinedIndustry = "oil-gas-integrated"
+
+    // IndustryOilGasEP represents the Oil & Gas E&P industry.
+    IndustryOilGasEP PredefinedIndustry = "oil-gas-e-p"
+
+    // IndustryOilGasMidstream represents the Oil & Gas Midstream industry.
+    IndustryOilGasMidstream PredefinedIndustry = "oil-gas-midstream"
+
+    // IndustryOilGasEquipmentServices represents the Oil & Gas Equipment & Services industry.
+    IndustryOilGasEquipmentServices PredefinedIndustry = "oil-gas-equipment-services"
+)
+```
+
+<a name="IndustryAutoManufacturers"></a>Consumer Cyclical Industries
+
+```go
+const (
+    // IndustryAutoManufacturers represents the Auto Manufacturers industry.
+    IndustryAutoManufacturers PredefinedIndustry = "auto-manufacturers"
+
+    // IndustryInternetRetail represents the Internet Retail industry.
+    IndustryInternetRetail PredefinedIndustry = "internet-retail"
+
+    // IndustryRestaurants represents the Restaurants industry.
+    IndustryRestaurants PredefinedIndustry = "restaurants"
+
+    // IndustryHomeImprovementRetail represents the Home Improvement Retail industry.
+    IndustryHomeImprovementRetail PredefinedIndustry = "home-improvement-retail"
+)
+```
+
+<a name="IndustryAerospaceDefense"></a>Industrials Sector Industries
+
+```go
+const (
+    // IndustryAerospaceDefense represents the Aerospace & Defense industry.
+    IndustryAerospaceDefense PredefinedIndustry = "aerospace-defense"
+
+    // IndustryRailroads represents the Railroads industry.
+    IndustryRailroads PredefinedIndustry = "railroads"
+
+    // IndustryAirlines represents the Airlines industry.
+    IndustryAirlines PredefinedIndustry = "airlines"
+
+    // IndustryBuildingProductsEquipment represents the Building Products & Equipment industry.
+    IndustryBuildingProductsEquipment PredefinedIndustry = "building-products-equipment"
+)
+```
+
+<a name="AllIndustries"></a>
+### func AllIndustries
+
+```go
+func AllIndustries() []PredefinedIndustry
+```
+
+AllIndustries returns a list of common predefined industry identifiers. Note: This is not exhaustive \- there are many more industries available.
+
+<a name="PredefinedMarket"></a>
+## type PredefinedMarket
+
+PredefinedMarket represents commonly used market identifiers.
+
+```go
+type PredefinedMarket string
+```
+
+<a name="MarketUS"></a>
+
+```go
+const (
+    // MarketUS represents the US market.
+    MarketUS PredefinedMarket = "us_market"
+
+    // MarketGB represents the UK market.
+    MarketGB PredefinedMarket = "gb_market"
+
+    // MarketDE represents the German market.
+    MarketDE PredefinedMarket = "de_market"
+
+    // MarketFR represents the French market.
+    MarketFR PredefinedMarket = "fr_market"
+
+    // MarketJP represents the Japanese market.
+    MarketJP PredefinedMarket = "jp_market"
+
+    // MarketHK represents the Hong Kong market.
+    MarketHK PredefinedMarket = "hk_market"
+
+    // MarketCN represents the Chinese market.
+    MarketCN PredefinedMarket = "cn_market"
+
+    // MarketCA represents the Canadian market.
+    MarketCA PredefinedMarket = "ca_market"
+
+    // MarketAU represents the Australian market.
+    MarketAU PredefinedMarket = "au_market"
+
+    // MarketIN represents the Indian market.
+    MarketIN PredefinedMarket = "in_market"
+
+    // MarketKR represents the Korean market.
+    MarketKR PredefinedMarket = "kr_market"
+
+    // MarketBR represents the Brazilian market.
+    MarketBR PredefinedMarket = "br_market"
+)
+```
+
 <a name="PredefinedScreener"></a>
 ## type PredefinedScreener
 
@@ -3178,6 +5692,63 @@ func AllPredefinedScreeners() []PredefinedScreener
 ```
 
 AllPredefinedScreeners returns all available predefined screener names.
+
+<a name="PredefinedSector"></a>
+## type PredefinedSector
+
+PredefinedSector represents commonly used sector identifiers.
+
+```go
+type PredefinedSector string
+```
+
+<a name="SectorBasicMaterials"></a>
+
+```go
+const (
+    // SectorBasicMaterials represents the Basic Materials sector.
+    SectorBasicMaterials PredefinedSector = "basic-materials"
+
+    // SectorCommunicationServices represents the Communication Services sector.
+    SectorCommunicationServices PredefinedSector = "communication-services"
+
+    // SectorConsumerCyclical represents the Consumer Cyclical sector.
+    SectorConsumerCyclical PredefinedSector = "consumer-cyclical"
+
+    // SectorConsumerDefensive represents the Consumer Defensive sector.
+    SectorConsumerDefensive PredefinedSector = "consumer-defensive"
+
+    // SectorEnergy represents the Energy sector.
+    SectorEnergy PredefinedSector = "energy"
+
+    // SectorFinancialServices represents the Financial Services sector.
+    SectorFinancialServices PredefinedSector = "financial-services"
+
+    // SectorHealthcare represents the Healthcare sector.
+    SectorHealthcare PredefinedSector = "healthcare"
+
+    // SectorIndustrials represents the Industrials sector.
+    SectorIndustrials PredefinedSector = "industrials"
+
+    // SectorRealEstate represents the Real Estate sector.
+    SectorRealEstate PredefinedSector = "real-estate"
+
+    // SectorTechnology represents the Technology sector.
+    SectorTechnology PredefinedSector = "technology"
+
+    // SectorUtilities represents the Utilities sector.
+    SectorUtilities PredefinedSector = "utilities"
+)
+```
+
+<a name="AllSectors"></a>
+### func AllSectors
+
+```go
+func AllSectors() []PredefinedSector
+```
+
+AllSectors returns a list of all predefined sector identifiers.
 
 <a name="PriceTarget"></a>
 ## type PriceTarget
@@ -3664,6 +6235,30 @@ RecommendationTrend represents analyst recommendations over time.
 ```go
 type RecommendationTrend struct {
     Trend []Recommendation `json:"trend"`
+}
+```
+
+<a name="ResearchReport"></a>
+## type ResearchReport
+
+ResearchReport represents a research report.
+
+```go
+type ResearchReport struct {
+    // ID is the unique report identifier.
+    ID  string `json:"id,omitempty"`
+
+    // Title is the report title.
+    Title string `json:"title,omitempty"`
+
+    // Provider is the report provider name.
+    Provider string `json:"provider,omitempty"`
+
+    // PublishDate is the publication date.
+    PublishDate string `json:"publish_date,omitempty"`
+
+    // Summary is a brief summary of the report.
+    Summary string `json:"summary,omitempty"`
 }
 ```
 
@@ -4154,6 +6749,151 @@ SearchThumbnail represents thumbnail image information.
 ```go
 type SearchThumbnail struct {
     Resolutions []ThumbnailResolution `json:"resolutions,omitempty"`
+}
+```
+
+<a name="SectorData"></a>
+## type SectorData
+
+SectorData contains all data for a sector.
+
+This includes overview information, top companies, industries, top ETFs, and top mutual funds.
+
+Example:
+
+```
+s, err := sector.New("technology")
+if err != nil {
+    log.Fatal(err)
+}
+data, err := s.Data()
+fmt.Printf("Sector: %s has %d companies\n", data.Name, data.Overview.CompaniesCount)
+```
+
+```go
+type SectorData struct {
+    // Key is the sector identifier.
+    Key string `json:"key"`
+
+    // Name is the display name of the sector.
+    Name string `json:"name"`
+
+    // Symbol is the associated symbol (e.g., index symbol).
+    Symbol string `json:"symbol,omitempty"`
+
+    // Overview contains sector overview information.
+    Overview SectorOverview `json:"overview"`
+
+    // TopCompanies lists the top companies in the sector.
+    TopCompanies []SectorTopCompany `json:"top_companies,omitempty"`
+
+    // Industries lists the industries within the sector.
+    Industries []SectorIndustry `json:"industries,omitempty"`
+
+    // TopETFs maps ETF symbols to names.
+    TopETFs map[string]string `json:"top_etfs,omitempty"`
+
+    // TopMutualFunds maps mutual fund symbols to names.
+    TopMutualFunds map[string]string `json:"top_mutual_funds,omitempty"`
+
+    // ResearchReports contains research reports for the sector.
+    ResearchReports []ResearchReport `json:"research_reports,omitempty"`
+}
+```
+
+<a name="SectorIndustry"></a>
+## type SectorIndustry
+
+SectorIndustry represents an industry within a sector.
+
+```go
+type SectorIndustry struct {
+    // Key is the unique identifier for the industry.
+    Key string `json:"key"`
+
+    // Name is the display name of the industry.
+    Name string `json:"name"`
+
+    // Symbol is the associated symbol.
+    Symbol string `json:"symbol,omitempty"`
+
+    // MarketWeight is the industry's weight within the sector.
+    MarketWeight float64 `json:"market_weight,omitempty"`
+}
+```
+
+<a name="SectorOverview"></a>
+## type SectorOverview
+
+SectorOverview contains overview information for a sector.
+
+```go
+type SectorOverview struct {
+    // CompaniesCount is the number of companies in the sector.
+    CompaniesCount int `json:"companies_count,omitempty"`
+
+    // MarketCap is the total market capitalization of the sector.
+    MarketCap float64 `json:"market_cap,omitempty"`
+
+    // MessageBoardID is the Yahoo Finance message board identifier.
+    MessageBoardID string `json:"message_board_id,omitempty"`
+
+    // Description is a text description of the sector.
+    Description string `json:"description,omitempty"`
+
+    // IndustriesCount is the number of industries in the sector.
+    IndustriesCount int `json:"industries_count,omitempty"`
+
+    // MarketWeight is the sector's weight in the market.
+    MarketWeight float64 `json:"market_weight,omitempty"`
+
+    // EmployeeCount is the total number of employees in the sector.
+    EmployeeCount int64 `json:"employee_count,omitempty"`
+}
+```
+
+<a name="SectorResponse"></a>
+## type SectorResponse
+
+SectorResponse represents the raw API response for sector data.
+
+```go
+type SectorResponse struct {
+    Data struct {
+        Name            string                   `json:"name"`
+        Symbol          string                   `json:"symbol"`
+        Overview        map[string]interface{}   `json:"overview"`
+        TopCompanies    []map[string]interface{} `json:"topCompanies"`
+        Industries      []map[string]interface{} `json:"industries"`
+        TopETFs         []map[string]interface{} `json:"topETFs"`
+        TopMutualFunds  []map[string]interface{} `json:"topMutualFunds"`
+        ResearchReports []map[string]interface{} `json:"researchReports"`
+    }   `json:"data"`
+    Error *struct {
+        Code        string `json:"code"`
+        Description string `json:"description"`
+    }   `json:"error,omitempty"`
+}
+```
+
+<a name="SectorTopCompany"></a>
+## type SectorTopCompany
+
+SectorTopCompany represents a top company within a sector.
+
+```go
+type SectorTopCompany struct {
+    // Symbol is the stock ticker symbol.
+    Symbol string `json:"symbol"`
+
+    // Name is the company name.
+    Name string `json:"name"`
+
+    // Rating is the analyst rating.
+    Rating string `json:"rating,omitempty"`
+
+    // MarketWeight is the company's weight within the sector.
+    MarketWeight float64 `json:"market_weight,omitempty"`
 }
 ```
 
@@ -5064,6 +7804,436 @@ params := models.SearchParams{
     EnableFuzzyQuery: true,
 }
 result, err := s.SearchWithParams(params)
+```
+
+# sector
+
+```go
+import "github.com/wnjoon/go-yfinance/pkg/sector"
+```
+
+Package sector provides Yahoo Finance sector data functionality.
+
+### Overview
+
+The sector package allows retrieving financial sector information including overview data, top companies, industries within the sector, top ETFs, and top mutual funds. This is useful for sector\-based analysis and screening.
+
+### Basic Usage
+
+```
+s, err := sector.New("technology")
+if err != nil {
+    log.Fatal(err)
+}
+defer s.Close()
+
+// Get sector overview
+overview, err := s.Overview()
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("Companies: %d\n", overview.CompaniesCount)
+fmt.Printf("Market Cap: $%.2f\n", overview.MarketCap)
+```
+
+### Top Companies
+
+Get the top companies within a sector:
+
+```
+companies, err := s.TopCompanies()
+if err != nil {
+    log.Fatal(err)
+}
+for _, c := range companies {
+    fmt.Printf("%s: %s (Weight: %.4f)\n",
+        c.Symbol, c.Name, c.MarketWeight)
+}
+```
+
+### Industries
+
+Get industries within the sector:
+
+```
+industries, err := s.Industries()
+if err != nil {
+    log.Fatal(err)
+}
+for _, i := range industries {
+    fmt.Printf("%s: %s\n", i.Key, i.Name)
+}
+```
+
+### Top ETFs and Mutual Funds
+
+Get top ETFs and mutual funds for the sector:
+
+```
+etfs, err := s.TopETFs()
+funds, err := s.TopMutualFunds()
+```
+
+### Predefined Sectors
+
+Common sector identifiers are available as constants:
+
+```
+s, _ := sector.NewWithPredefined(models.SectorTechnology)
+s, _ := sector.NewWithPredefined(models.SectorHealthcare)
+s, _ := sector.NewWithPredefined(models.SectorFinancialServices)
+```
+
+Available predefined sectors:
+
+- SectorBasicMaterials: Basic Materials
+- SectorCommunicationServices: Communication Services
+- SectorConsumerCyclical: Consumer Cyclical
+- SectorConsumerDefensive: Consumer Defensive
+- SectorEnergy: Energy
+- SectorFinancialServices: Financial Services
+- SectorHealthcare: Healthcare
+- SectorIndustrials: Industrials
+- SectorRealEstate: Real Estate
+- SectorTechnology: Technology
+- SectorUtilities: Utilities
+
+### Caching
+
+Sector data is cached after the first fetch. To refresh:
+
+```
+s.ClearCache()
+```
+
+### Custom Client
+
+Provide a custom HTTP client:
+
+```
+c, _ := client.New()
+s, _ := sector.New("technology", sector.WithClient(c))
+```
+
+### Thread Safety
+
+All Sector methods are safe for concurrent use from multiple goroutines.
+
+### Python Compatibility
+
+This package implements the same functionality as Python yfinance's Sector class:
+
+```
+Python                          | Go
+--------------------------------|--------------------------------
+yf.Sector("technology")         | sector.New("technology")
+sector.key                      | s.Key()
+sector.name                     | s.Name()
+sector.symbol                   | s.Symbol()
+sector.overview                 | s.Overview()
+sector.top_companies            | s.TopCompanies()
+sector.industries               | s.Industries()
+sector.top_etfs                 | s.TopETFs()
+sector.top_mutual_funds         | s.TopMutualFunds()
+sector.research_reports         | s.ResearchReports()
+```
+
+## Index
+
+- [type Option](<#Option>)
+  - [func WithClient\(c \*client.Client\) Option](<#WithClient>)
+- [type Sector](<#Sector>)
+  - [func New\(key string, opts ...Option\) \(\*Sector, error\)](<#New>)
+  - [func NewWithPredefined\(sector models.PredefinedSector, opts ...Option\) \(\*Sector, error\)](<#NewWithPredefined>)
+  - [func \(s \*Sector\) ClearCache\(\)](<#Sector.ClearCache>)
+  - [func \(s \*Sector\) Close\(\)](<#Sector.Close>)
+  - [func \(s \*Sector\) Data\(\) \(\*models.SectorData, error\)](<#Sector.Data>)
+  - [func \(s \*Sector\) Industries\(\) \(\[\]models.SectorIndustry, error\)](<#Sector.Industries>)
+  - [func \(s \*Sector\) Key\(\) string](<#Sector.Key>)
+  - [func \(s \*Sector\) Name\(\) \(string, error\)](<#Sector.Name>)
+  - [func \(s \*Sector\) Overview\(\) \(models.SectorOverview, error\)](<#Sector.Overview>)
+  - [func \(s \*Sector\) ResearchReports\(\) \(\[\]models.ResearchReport, error\)](<#Sector.ResearchReports>)
+  - [func \(s \*Sector\) Symbol\(\) \(string, error\)](<#Sector.Symbol>)
+  - [func \(s \*Sector\) TopCompanies\(\) \(\[\]models.SectorTopCompany, error\)](<#Sector.TopCompanies>)
+  - [func \(s \*Sector\) TopETFs\(\) \(map\[string\]string, error\)](<#Sector.TopETFs>)
+  - [func \(s \*Sector\) TopMutualFunds\(\) \(map\[string\]string, error\)](<#Sector.TopMutualFunds>)
+
+
+<a name="Option"></a>
+## type Option
+
+Option is a function that configures a Sector instance.
+
+```go
+type Option func(*Sector)
+```
+
+<a name="WithClient"></a>
+### func WithClient
+
+```go
+func WithClient(c *client.Client) Option
+```
+
+WithClient sets a custom HTTP client for the Sector instance.
+
+<a name="Sector"></a>
+## type Sector
+
+Sector provides access to financial sector data from Yahoo Finance.
+
+Sector allows retrieving sector\-related information such as overview, top companies, industries, top ETFs, and top mutual funds.
+
+```go
+type Sector struct {
+    // contains filtered or unexported fields
+}
+```
+
+<a name="New"></a>
+### func New
+
+```go
+func New(key string, opts ...Option) (*Sector, error)
+```
+
+New creates a new Sector instance for the given sector key.
+
+Sector keys are lowercase with hyphens, e.g., "technology", "basic\-materials". Use predefined constants from models package for convenience.
+
+Example:
+
+```
+s, err := sector.New("technology")
+if err != nil {
+    log.Fatal(err)
+}
+defer s.Close()
+
+overview, err := s.Overview()
+fmt.Printf("Sector has %d companies\n", overview.CompaniesCount)
+```
+
+<a name="NewWithPredefined"></a>
+### func NewWithPredefined
+
+```go
+func NewWithPredefined(sector models.PredefinedSector, opts ...Option) (*Sector, error)
+```
+
+NewWithPredefined creates a new Sector instance using a predefined sector constant.
+
+Example:
+
+```
+s, err := sector.NewWithPredefined(models.SectorTechnology)
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+<a name="Sector.ClearCache"></a>
+### func \(\*Sector\) ClearCache
+
+```go
+func (s *Sector) ClearCache()
+```
+
+ClearCache clears the cached sector data. The next call to any data method will fetch fresh data.
+
+<a name="Sector.Close"></a>
+### func \(\*Sector\) Close
+
+```go
+func (s *Sector) Close()
+```
+
+Close releases resources used by the Sector instance.
+
+<a name="Sector.Data"></a>
+### func \(\*Sector\) Data
+
+```go
+func (s *Sector) Data() (*models.SectorData, error)
+```
+
+Data returns all sector data.
+
+This fetches and returns the complete sector information including overview, top companies, industries, top ETFs, and mutual funds.
+
+Example:
+
+```
+data, err := s.Data()
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("Sector: %s\n", data.Name)
+fmt.Printf("Companies: %d\n", data.Overview.CompaniesCount)
+```
+
+<a name="Sector.Industries"></a>
+### func \(\*Sector\) Industries
+
+```go
+func (s *Sector) Industries() ([]models.SectorIndustry, error)
+```
+
+Industries returns the industries within the sector.
+
+Example:
+
+```
+industries, err := s.Industries()
+if err != nil {
+    log.Fatal(err)
+}
+for _, i := range industries {
+    fmt.Printf("%s: %s\n", i.Key, i.Name)
+}
+```
+
+<a name="Sector.Key"></a>
+### func \(\*Sector\) Key
+
+```go
+func (s *Sector) Key() string
+```
+
+Key returns the sector key.
+
+<a name="Sector.Name"></a>
+### func \(\*Sector\) Name
+
+```go
+func (s *Sector) Name() (string, error)
+```
+
+Name returns the sector name.
+
+Example:
+
+```
+name, err := s.Name()
+fmt.Println(name) // "Technology"
+```
+
+<a name="Sector.Overview"></a>
+### func \(\*Sector\) Overview
+
+```go
+func (s *Sector) Overview() (models.SectorOverview, error)
+```
+
+Overview returns the sector overview information.
+
+Example:
+
+```
+overview, err := s.Overview()
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("Companies: %d\n", overview.CompaniesCount)
+fmt.Printf("Market Cap: $%.2f\n", overview.MarketCap)
+```
+
+<a name="Sector.ResearchReports"></a>
+### func \(\*Sector\) ResearchReports
+
+```go
+func (s *Sector) ResearchReports() ([]models.ResearchReport, error)
+```
+
+ResearchReports returns research reports for the sector.
+
+Example:
+
+```
+reports, err := s.ResearchReports()
+if err != nil {
+    log.Fatal(err)
+}
+for _, r := range reports {
+    fmt.Printf("%s: %s\n", r.Provider, r.Title)
+}
+```
+
+<a name="Sector.Symbol"></a>
+### func \(\*Sector\) Symbol
+
+```go
+func (s *Sector) Symbol() (string, error)
+```
+
+Symbol returns the sector symbol.
+
+<a name="Sector.TopCompanies"></a>
+### func \(\*Sector\) TopCompanies
+
+```go
+func (s *Sector) TopCompanies() ([]models.SectorTopCompany, error)
+```
+
+TopCompanies returns the top companies in the sector.
+
+Example:
+
+```
+companies, err := s.TopCompanies()
+if err != nil {
+    log.Fatal(err)
+}
+for _, c := range companies {
+    fmt.Printf("%s: %s (Weight: %.2f%%)\n",
+        c.Symbol, c.Name, c.MarketWeight*100)
+}
+```
+
+<a name="Sector.TopETFs"></a>
+### func \(\*Sector\) TopETFs
+
+```go
+func (s *Sector) TopETFs() (map[string]string, error)
+```
+
+TopETFs returns the top ETFs for the sector.
+
+Returns a map of ETF symbols to names.
+
+Example:
+
+```
+etfs, err := s.TopETFs()
+if err != nil {
+    log.Fatal(err)
+}
+for symbol, name := range etfs {
+    fmt.Printf("%s: %s\n", symbol, name)
+}
+```
+
+<a name="Sector.TopMutualFunds"></a>
+### func \(\*Sector\) TopMutualFunds
+
+```go
+func (s *Sector) TopMutualFunds() (map[string]string, error)
+```
+
+TopMutualFunds returns the top mutual funds for the sector.
+
+Returns a map of mutual fund symbols to names.
+
+Example:
+
+```
+funds, err := s.TopMutualFunds()
+if err != nil {
+    log.Fatal(err)
+}
+for symbol, name := range funds {
+    fmt.Printf("%s: %s\n", symbol, name)
+}
 ```
 
 # ticker
