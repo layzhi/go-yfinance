@@ -44,6 +44,9 @@ const (
 	// Market Summary
 	MarketSummaryURL = Query1URL + "/v6/finance/quote/marketSummary"
 
+	// Market Time
+	MarketTimeURL = Query1URL + "/v6/finance/markettime"
+
 	// News
 	NewsURL = RootURL + "/xhr/ncp"
 
